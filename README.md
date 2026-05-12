@@ -22,9 +22,12 @@
       <td width="33%" align="center"><b>Rich Text Editor</b></td>
     </tr>
     <tr>
-      <td align="center"><img src="https://via.placeholder.com/250x400.png?text=Sidebar+Screenshot+Here" width="100%" style="border-radius:12px;"/></td>
-      <td align="center"><img src="https://via.placeholder.com/250x400.png?text=Sticky+Notes+Screenshot" width="100%" style="border-radius:12px;"/></td>
-      <td align="center"><img src="https://via.placeholder.com/250x400.png?text=Full+Notes+Screenshot" width="100%" style="border-radius:12px;"/></td>
+      <td align="center"><img src="https://github.com/user-attachments/assets/a0eb9686-5810-4686-a3f2-703a1d3f6ec0" 
+ width="100%" style="border-radius:12px;"/></td>
+      <td align="center"><img src="https://github.com/user-attachments/assets/d26e376d-9784-4d6e-b563-15b9258a065c" 
+ width="100%" style="border-radius:12px;"/></td>
+      <td align="center"><img src="https://github.com/user-attachments/assets/3e39168d-5d01-4ab1-b54b-3ed2cd7bdb61"
+ width="100%" style="border-radius:12px;"/></td>
     </tr>
   </table>
 </div>
