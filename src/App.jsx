@@ -208,13 +208,16 @@ function ColorPicker({ selectedColor, onChange }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)} className="w-5 h-5 rounded-full border-[2px] border-surface-variant shadow-md hover:scale-110 transition-transform" style={{ backgroundColor: selectedColor }}></button>
+      <button onClick={() => setOpen(!open)} className="w-5 h-5 rounded-full border-[2px] border-surface-variant shadow-md hover:scale-110 transition-transform relative z-[51]" style={{ backgroundColor: selectedColor }}></button>
       {open && (
-        <div className="absolute top-8 right-0 z-50 bg-surface-container-high border border-surface-variant rounded-xl p-3 flex gap-2 shadow-2xl flex-wrap w-[140px] origin-top-right animate-in fade-in zoom-in-95 duration-200">
-          {VIBRANT_COLORS.map(c => (
-            <button key={c} onClick={() => { onChange(c); setOpen(false); }} className={`w-6 h-6 rounded-full hover:scale-125 hover:z-10 transition-transform shadow-sm ${selectedColor === c ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-high scale-110' : ''}`} style={{ backgroundColor: c }}></button>
-          ))}
-        </div>
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
+          <div className="absolute top-8 left-0 z-50 bg-surface-container-high border border-surface-variant rounded-xl p-3 flex gap-2 shadow-2xl flex-wrap w-[140px] origin-top-left animate-in fade-in zoom-in-95 duration-200">
+            {VIBRANT_COLORS.map(c => (
+              <button key={c} onClick={() => { onChange(c); setOpen(false); }} className={`w-6 h-6 rounded-full hover:scale-125 hover:z-10 transition-transform shadow-sm ${selectedColor === c ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-high scale-110' : ''}`} style={{ backgroundColor: c }}></button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -253,16 +256,15 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
       layout
       initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, scale: 0.9 }}
       whileHover={{ scale: 1.01 }}
-      onDoubleClick={() => { if (!todo.completed) setIsEditing(true); }}
-      onClick={() => { if (!isEditing) updateTodo(todo.id, { completed: !todo.completed }); }}
-      className={`min-h-[44px] flex items-center gap-3 px-3 py-2 rounded-xl group cursor-pointer transition-all duration-200 hover:shadow-md border ${todo.completed ? 'opacity-40 bg-black/10 border-transparent grayscale-[50%]' : 'bg-black/20 border-transparent hover:bg-black/40 hover:border-white/10'}`}
+      className={`min-h-[44px] flex items-center gap-3 px-3 py-2 rounded-xl group transition-all duration-200 hover:shadow-md border ${todo.completed ? 'opacity-40 bg-black/10 border-transparent grayscale-[50%]' : 'bg-black/20 border-transparent hover:bg-black/40 hover:border-white/10'}`}
     >
-      <button 
-        onClick={toggleComplete}
-        className={`w-[22px] h-[22px] rounded-md border-[2px] flex items-center justify-center transition-all shrink-0 ${todo.completed ? 'border-primary bg-primary text-on-primary scale-110' : 'border-outline hover:border-primary bg-transparent'}`}
-      >
-        {todo.completed && <span className="material-symbols-outlined text-[14px] font-bold">check</span>}
-      </button>
+      <div className="p-1 -m-1 cursor-pointer" onClick={toggleComplete}>
+        <button 
+          className={`w-[22px] h-[22px] rounded-md border-[2px] flex items-center justify-center transition-all shrink-0 ${todo.completed ? 'border-primary bg-primary text-on-primary scale-110' : 'border-outline hover:border-primary bg-transparent'}`}
+        >
+          {todo.completed && <span className="material-symbols-outlined text-[14px] font-bold">check</span>}
+        </button>
+      </div>
       
       {isEditing ? (
         <input 
@@ -272,7 +274,10 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
           className="bg-background border border-primary/50 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary font-body-main text-body-main flex-1 w-full text-on-surface shadow-inner"
         />
       ) : (
-        <span className={`font-body-main text-body-main flex-1 w-full leading-snug break-words ${todo.completed ? 'text-on-surface-variant line-through' : 'text-on-surface'}`}>
+        <span 
+          onClick={() => { if (!todo.completed) setIsEditing(true); }}
+          className={`cursor-text font-body-main text-body-main flex-1 w-full leading-snug break-words py-1 ${todo.completed ? 'text-on-surface-variant line-through' : 'text-on-surface'}`}
+        >
           {todo.title}
         </span>
       )}

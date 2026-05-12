@@ -1,47 +1,65 @@
-# Flownote - Brave Sidepanel Productivity Extension
-
 <div align="center">
-  <img src="icon.png" alt="Flownote Logo" width="100"/>
+  <img src="icon.png" alt="Flownote Logo" width="120" style="border-radius: 20%; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"/>
+  <h1>Flownote</h1>
   <h3>Your Ultimate Sidepanel Companion</h3>
+  <p><i>A premium, beautifully crafted productivity suite that persists alongside your browsing experience.</i></p>
+  
+  [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](#)
+  [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](#)
+  [![Tailwind CSS 4](https://img.shields.io/badge/Tailwind-4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](#)
+  [![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](#)
 </div>
 
-Flownote is a premium, beautifully crafted sidepanel productivity extension designed specifically for Chromium-based browsers (Brave, Chrome, Edge). It acts as a continuous, distraction-free workspace that persists alongside your browsing experience. 
+<br/>
 
-Built with modern web technologies, Flownote utilizes a stunning glassmorphism design system, smooth Framer Motion animations, and strict privacy-focused local storage to keep your thoughts organized.
+## 📸 Interface Preview
+
+<div align="center">
+  <table width="100%">
+    <tr>
+      <td width="33%" align="center"><b>Smart Task Organization</b></td>
+      <td width="33%" align="center"><b>Distraction-Free Sticky Notes</b></td>
+      <td width="33%" align="center"><b>Rich Text Editor</b></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="https://via.placeholder.com/250x400.png?text=Sidebar+Screenshot+Here" width="100%" style="border-radius:12px;"/></td>
+      <td align="center"><img src="https://via.placeholder.com/250x400.png?text=Sticky+Notes+Screenshot" width="100%" style="border-radius:12px;"/></td>
+      <td align="center"><img src="https://via.placeholder.com/250x400.png?text=Full+Notes+Screenshot" width="100%" style="border-radius:12px;"/></td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## 📸 Screenshots
+## ✨ Features at a Glance
 
-*(Replace the placeholder URLs below with your actual screenshots after pushing the repository)*
-
-| Sidebar View | Full Notes Editor | Sticky Notes |
-|:---:|:---:|:---:|
-| <img src="https://via.placeholder.com/250x400.png?text=Sidebar+Screenshot+Here" width="250" /> | <img src="https://via.placeholder.com/250x400.png?text=Full+Notes+Screenshot" width="250" /> | <img src="https://via.placeholder.com/250x400.png?text=Sticky+Notes+Screenshot" width="250" /> |
+* **Smart To-Do Interactions:** Click the checkbox to toggle completion, or click directly on the text to edit it inline instantly. Press `Enter` to auto-save tasks.
+* **Persistent Local State:** Powered by `chrome.storage.local`. Your notes and tasks survive browser crashes and restarts.
+* **Frosted Glassmorphism Theme:** Custom vibrant neon palettes with dynamically adapting translucent layouts.
+* **Immersive Note Editing:** Click any Sticky Note to expand it into a gorgeous fullscreen editing canvas.
+* **Real-time Color Theming:** Dynamically customize the accent colors of your categories and notes.
 
 ---
 
-## 🛠️ System Architecture (How It Is Made)
+## 🛠️ System Architecture
 
-If you are a developer looking to understand how modern Chromium extensions are built, Flownote serves as a perfect boilerplate. 
+Flownote serves as a masterclass boilerplate for building sophisticated, React-powered Chromium sidepanel extensions.
 
-### **The Technology Stack**
-- **React 19:** Powers the user interface, enabling component-driven design and complex state management across tabs (Todos, Sticky Notes, Editor).
-- **Vite 6:** The lightning-fast build tool used to bundle the React application into the static `HTML/JS/CSS` files required by the browser extension engine.
-- **Tailwind CSS 4:** Used extensively for rapid UI development. We utilize advanced Tailwind features to achieve the frosted glass (glassmorphism) look, vibrant neon gradients, and responsive layouts.
-- **Framer Motion:** Handles all the silky-smooth layout transitions, hover states, and exit/entry animations.
-- **Chrome Extensions API (Manifest V3):** The core engine. It utilizes the `chrome.sidePanel` API to render the React app in the browser sidebar, and `chrome.storage.local` to persist data.
+<details>
+<summary><b>View the Technical Stack</b></summary>
+<br/>
 
-### **How the Code Works**
-1. **Manifest File (`manifest.json`):** This is the blueprint. It tells the browser what permissions the extension needs (`sidePanel`, `storage`) and where the entry HTML file is located (`index.html`).
-2. **State Persistence:** Inside `App.jsx`, a custom React Hook (`useChromeStorage`) is used. Every time a user types a note or checks a task, this hook automatically bridges React's state with the browser's hidden `chrome.storage.local` database. This ensures zero data loss even if the browser crashes.
-3. **The View Layer:** The app is a Single Page Application (SPA). The main `App.jsx` router switches between `<TodosView>`, `<NotesView>`, and `<RichEditorView>` instantly without page reloads, relying on Framer Motion to animate the transitions between these states.
+- **React 19:** Orchestrates the Single Page Application (SPA), allowing seamless switching between Todos, Sticky Notes, and the Rich Editor without page reloads.
+- **Framer Motion:** Handles all layout transitions, hover interactions, and entry/exit animations, providing a silky-smooth native feel.
+- **Tailwind CSS 4:** Drives the glassmorphism aesthetic with custom drop shadows, CSS filters (`backdrop-blur`), and utility classes for layout structuring.
+- **Custom React Hooks:** A centralized `useChromeStorage` hook acts as a bridge between React's state memory and the browser's persistent `chrome.storage.local` API.
+</details>
 
 ---
 
 ## 🌐 Supported Browsers
 
-Flownote leverages the modern **Manifest V3** architecture and the `chrome.sidePanel` API. It is natively compatible with all modern Chromium-based browsers:
+Flownote leverages the modern **Manifest V3** architecture and the `chrome.sidePanel` API. It is natively compatible with:
 - **Brave Browser** (Highly Recommended)
 - **Google Chrome**
 - **Microsoft Edge**
@@ -49,52 +67,32 @@ Flownote leverages the modern **Manifest V3** architecture and the `chrome.sideP
 
 ---
 
-## 🚀 Setup & Installation Guide
+## 🚀 Setup & Installation
 
-To run Flownote locally on your machine, follow these steps:
+Get Flownote running on your machine in 3 simple steps:
 
-### 1. Build the Extension
-Because Flownote uses React, the source code must be compiled into standard web files.
-
+### 1. Build the Source
 ```bash
-# Install all required dependencies
+# Install dependencies
 npm install
 
-# Compile the project into the /dist directory
+# Compile the React app into the static /dist folder
 npm run build
 ```
-*Note: A `/dist` folder will be generated. This folder contains the final code the browser will execute.*
 
-### 2. Load into Your Browser
-The process is nearly identical across all supported Chromium browsers:
+### 2. Load the Extension
+Open a new tab and navigate to your browser's extension management page:
+- **Brave:** `brave://extensions/`
+- **Chrome:** `chrome://extensions/`
+- **Edge:** `edge://extensions/`
 
-1. Open a new tab and navigate to your browser's extension management page:
-   - **Brave:** `brave://extensions/`
-   - **Chrome:** `chrome://extensions/`
-   - **Edge:** `edge://extensions/`
-   - **Opera:** `opera://extensions/`
-2. In the top right corner (or bottom left for Edge), toggle the **Developer mode** switch to ON.
-3. Click the **Load unpacked** button (usually in the top left).
-4. Navigate to your downloaded project folder and select the newly generated `/dist` directory.
-5. The Flownote extension will appear in your list! Click the Flownote icon in your top toolbar to open the side panel.
+Toggle the **Developer mode** switch ON. Click **Load unpacked** and select the `/dist` directory generated from step 1.
 
-### 3. Setting Up Shortcuts (Optional)
-Browser security prevents extensions from automatically hijacking your keyboard shortcuts. To set one up manually:
-1. Go to `brave://extensions/shortcuts`
-2. Scroll down to Flownote.
-3. Click the pencil icon next to "Open Flownote" and type your preferred shortcut (e.g., `Cmd+Shift+X` or `Ctrl+Shift+X`).
+### 3. Quick Access (Optional)
+Navigate to `brave://extensions/shortcuts` and bind a keyboard shortcut (e.g., `Cmd+Shift+X`) to instantly toggle your Flownote sidepanel!
 
 ---
-
-## ✨ Features & Usage
-
-* **To-Do Management:** Automatically split into **Inbox**, **Today**, and **Upcoming**. 
-  - *Click* any task to mark it complete. 
-  - *Double-click* the text to instantly edit it inline.
-* **Custom Color Themes:** Click the color dot next to any category or sticky note to pop open a vibrant color palette.
-* **Full Screen Sticky Notes:** Click on any sticky note card to open it in a beautiful, distraction-free fullscreen editor.
-* **Rich Text Editing:** Use the third tab to create long-form notes. You can bold, italicize, create lists, and even press `Cmd+V` to paste an image directly from your clipboard!
-* **Universal Search:** Instantly filter across all your tasks and notes simultaneously using the top search bar.
-
----
-**Tags:** `#Productivity` `#React19` `#Vite` `#TailwindCSS` `#ChromeExtension` `#ManifestV3` `#Glassmorphism` `#ProfessionalTools`
+<div align="center">
+  <i>Designed for deep focus.</i><br/>
+  <b>#Productivity</b> • <b>#React19</b> • <b>#ProfessionalTools</b> • <b>#Glassmorphism</b>
+</div>
