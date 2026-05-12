@@ -208,13 +208,16 @@ function ColorPicker({ selectedColor, onChange }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)} className="w-5 h-5 rounded-full border-[2px] border-surface-variant shadow-md hover:scale-110 transition-transform relative z-[51]" style={{ backgroundColor: selectedColor }}></button>
+      <button onClick={(e) => { e.stopPropagation(); setOpen(!open); }} className="w-5 h-5 rounded-full border-[2px] border-surface-variant shadow-md hover:scale-110 transition-transform relative z-[51]" style={{ backgroundColor: selectedColor }}></button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
-          <div className="absolute top-8 left-0 z-50 bg-surface-container-high border border-surface-variant rounded-xl p-3 flex gap-2 shadow-2xl flex-wrap w-[140px] origin-top-left animate-in fade-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpen(false); }}></div>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-8 left-0 z-50 bg-[#1A1A1A] border border-surface-variant rounded-xl p-3 flex gap-2 shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex-wrap w-[140px] origin-top-left animate-in fade-in zoom-in-95 duration-200"
+          >
             {VIBRANT_COLORS.map(c => (
-              <button key={c} onClick={() => { onChange(c); setOpen(false); }} className={`w-6 h-6 rounded-full hover:scale-125 hover:z-10 transition-transform shadow-sm ${selectedColor === c ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-high scale-110' : ''}`} style={{ backgroundColor: c }}></button>
+              <button key={c} onClick={(e) => { e.stopPropagation(); onChange(c); setOpen(false); }} className={`w-6 h-6 rounded-full hover:scale-125 hover:z-10 transition-transform shadow-sm ${selectedColor === c ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#1A1A1A] scale-110' : ''}`} style={{ backgroundColor: c }}></button>
             ))}
           </div>
         </>
@@ -330,7 +333,7 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors }) {
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ backgroundColor: color }}></div>
         </div>
         
-        <header className="flex items-center justify-between px-1 mb-2 relative z-10">
+        <header className="flex items-center justify-between px-1 mb-2 relative z-20">
           <div className="flex items-center gap-2">
             <ColorPicker selectedColor={color} onChange={(c) => setCategoryColors({...categoryColors, [catKey]: c})} />
             <h2 className="font-label-caps uppercase tracking-widest font-bold text-sm" style={{ color }}>{label}</h2>
