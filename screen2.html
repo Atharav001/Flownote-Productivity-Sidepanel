@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quick Capture - OmniPanel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-container": "#00344e",
+                        "inverse-primary": "#732ee4",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "on-background": "#e5e2e1",
+                        "surface-tint": "#d2bbff",
+                        "background": "#131313",
+                        "surface-container": "#201f1f",
+                        "surface-container-high": "#2a2a2a",
+                        "secondary-container": "#00a2e6",
+                        "on-secondary-fixed-variant": "#004c6e",
+                        "on-tertiary-fixed-variant": "#713700",
+                        "secondary-fixed": "#c9e6ff",
+                        "surface-dim": "#131313",
+                        "secondary": "#89ceff",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#ffe0cd",
+                        "primary-fixed": "#eaddff",
+                        "surface-bright": "#393939",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-secondary": "#00344d",
+                        "inverse-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "on-surface-variant": "#ccc3d8",
+                        "primary-fixed-dim": "#d2bbff",
+                        "on-primary-container": "#ede0ff",
+                        "on-tertiary": "#4f2500",
+                        "primary-container": "#7c3aed",
+                        "outline": "#958da1",
+                        "surface-variant": "#353534",
+                        "secondary-fixed-dim": "#89ceff",
+                        "tertiary-fixed": "#ffdcc6",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#001e2f",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "primary": "#d2bbff",
+                        "on-tertiary-fixed": "#301400",
+                        "on-primary-fixed": "#25005a",
+                        "surface-container-highest": "#353534",
+                        "outline-variant": "#4a4455",
+                        "tertiary": "#ffb784",
+                        "error": "#ffb4ab",
+                        "on-primary": "#3f008e",
+                        "inverse-on-surface": "#313030",
+                        "tertiary-container": "#a15100",
+                        "tertiary-fixed-dim": "#ffb784"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "container-margin": "16px",
+                        "element-gap": "8px",
+                        "list-item-height": "32px",
+                        "sidebar-padding": "12px"
+                    },
+                    "fontFamily": {
+                        "kbd-shortcut": ["JetBrains Mono"],
+                        "sidebar-title": ["Geist"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-compact": ["Inter"],
+                        "body-main": ["Inter"]
+                    },
+                    "fontSize": {
+                        "kbd-shortcut": ["11px", { "lineHeight": "12px", "fontWeight": "400" }],
+                        "sidebar-title": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-compact": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "body-main": ["13px", { "lineHeight": "18px", "letterSpacing": "0px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-overlay {
+            background: rgba(22, 22, 22, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #2E2E2E;
+        }
+        .inner-highlight {
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .ghost-input {
+            border: 1px solid #2E2E2E;
+            background-color: transparent;
+            transition: all 150ms ease-out;
+        }
+        .ghost-input:focus {
+            border-color: #89ceff; /* Electric Blue vibe from secondary/secondary-fixed */
+            outline: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background flex justify-center items-start min-h-screen pt-8 font-body-main text-on-surface">
+<main class="w-[350px] h-[750px] bg-surface-container-lowest flex flex-col rounded-xl overflow-hidden glass-overlay shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+<header class="flex flex-col w-full p-sidebar-padding gap-element-gap bg-surface-container-lowest dark:bg-surface-container-lowest font-sidebar-title text-sidebar-title full-width top-0 text-primary dark:text-primary transition-all duration-150 ease-out z-10 shrink-0 border-b border-surface-variant/50">
+<div class="flex items-center justify-between w-full">
+<div class="font-sidebar-title text-sidebar-title font-bold text-on-surface dark:text-on-surface tracking-tight">
+                    OmniPanel
+                </div>
+<div class="flex items-center gap-element-gap">
+<button class="p-1 rounded-DEFAULT text-on-surface-variant hover:bg-surface-variant/5 dark:hover:bg-surface-variant/5 transition-all duration-150 ease-out flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] font-light" style="font-variation-settings: 'wght' 200;">settings</span>
+</button>
+<button class="p-1 rounded-DEFAULT text-on-surface-variant hover:bg-surface-variant/5 dark:hover:bg-surface-variant/5 transition-all duration-150 ease-out flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] font-light" style="font-variation-settings: 'wght' 200;">history</span>
+</button>
+</div>
+</div>
+<div class="flex items-center w-full bg-surface-container-low rounded-lg border border-[#2E2E2E] px-2 py-1.5 focus-within:border-secondary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-compact text-on-surface placeholder:text-on-surface-variant w-full p-0 h-auto" placeholder="Search captures..." type="text"/>
+<span class="font-kbd-shortcut text-kbd-shortcut text-outline ml-2 px-1.5 py-0.5 rounded bg-surface-variant border border-outline-variant">⌘K</span>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto scrollbar-hide p-container-margin flex flex-col gap-container-margin">
+<section class="flex flex-col gap-element-gap">
+<div class="flex items-center justify-between">
+<h2 class="font-sidebar-title text-sidebar-title text-on-surface">Quick Capture</h2>
+<span class="font-kbd-shortcut text-kbd-shortcut text-primary px-2 py-1 bg-primary/10 rounded-DEFAULT border border-primary/20">Active</span>
+</div>
+<div class="relative w-full">
+<textarea autofocus="" class="w-full min-h-[160px] ghost-input rounded-lg p-3 font-body-main text-on-surface placeholder:text-on-surface-variant resize-none" placeholder="Dump your thoughts here..."></textarea>
+</div>
+</section>
+<section class="flex flex-col gap-2">
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-high border border-surface-variant">
+<div class="w-6 h-6 rounded bg-primary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[14px] text-primary">link</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Current Tab</span>
+<span class="font-body-compact text-body-compact text-on-surface truncate">github.com/design-systems/omnipanel-docs</span>
+</div>
+<button class="ml-auto p-1 rounded hover:bg-surface-variant text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</section>
+<section class="flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Attachments</span>
+<div class="w-full h-[80px] rounded-lg border-2 border-dashed border-[#2E2E2E] hover:border-outline-variant hover:bg-surface-variant/5 transition-all duration-150 flex flex-col items-center justify-center gap-1 cursor-pointer group">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant group-hover:text-on-surface transition-colors">cloud_upload</span>
+<span class="font-body-compact text-body-compact text-on-surface-variant group-hover:text-on-surface transition-colors">Drop files or click</span>
+</div>
+</section>
+<section class="flex flex-col gap-2 mt-auto pt-4 border-t border-surface-variant/50">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Save Destination</span>
+<div class="flex gap-2">
+<label class="flex-1 relative cursor-pointer group">
+<input checked="" class="peer sr-only" name="destination" type="radio" value="notes"/>
+<div class="w-full flex items-center justify-center gap-2 p-2 rounded-lg border border-[#2E2E2E] bg-surface-container-low peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary text-on-surface-variant transition-all duration-150">
+<span class="material-symbols-outlined text-[16px]">sticky_note_2</span>
+<span class="font-body-compact text-body-compact font-medium">Notes</span>
+</div>
+</label>
+<label class="flex-1 relative cursor-pointer group">
+<input class="peer sr-only" name="destination" type="radio" value="todos"/>
+<div class="w-full flex items-center justify-center gap-2 p-2 rounded-lg border border-[#2E2E2E] bg-surface-container-low peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary text-on-surface-variant transition-all duration-150">
+<span class="material-symbols-outlined text-[16px]">checklist</span>
+<span class="font-body-compact text-body-compact font-medium">Todos</span>
+</div>
+</label>
+</div>
+</section>
+</div>
+<div class="p-container-margin bg-surface-container border-t border-[#2E2E2E] shrink-0 flex items-center justify-between">
+<span class="font-kbd-shortcut text-kbd-shortcut text-outline">Press ⏎ to save</span>
+<button class="bg-primary-container text-on-primary-container font-sidebar-title text-sidebar-title px-4 py-2 rounded-lg inner-highlight hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm flex items-center gap-2">
+                Save Entry
+                <span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</div>
+</main>
+</body></html>

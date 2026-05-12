@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OmniPanel - Sticky Notes</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Geist:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-container": "#00344e",
+                        "inverse-primary": "#732ee4",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "on-background": "#e5e2e1",
+                        "surface-tint": "#d2bbff",
+                        "background": "#131313",
+                        "surface-container": "#201f1f",
+                        "surface-container-high": "#2a2a2a",
+                        "secondary-container": "#00a2e6",
+                        "on-secondary-fixed-variant": "#004c6e",
+                        "on-tertiary-fixed-variant": "#713700",
+                        "secondary-fixed": "#c9e6ff",
+                        "surface-dim": "#131313",
+                        "secondary": "#89ceff",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#ffe0cd",
+                        "primary-fixed": "#eaddff",
+                        "surface-bright": "#393939",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-secondary": "#00344d",
+                        "inverse-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "on-surface-variant": "#ccc3d8",
+                        "primary-fixed-dim": "#d2bbff",
+                        "on-primary-container": "#ede0ff",
+                        "on-tertiary": "#4f2500",
+                        "primary-container": "#7c3aed",
+                        "outline": "#958da1",
+                        "surface-variant": "#353534",
+                        "secondary-fixed-dim": "#89ceff",
+                        "tertiary-fixed": "#ffdcc6",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#001e2f",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "primary": "#d2bbff",
+                        "on-tertiary-fixed": "#301400",
+                        "on-primary-fixed": "#25005a",
+                        "surface-container-highest": "#353534",
+                        "outline-variant": "#4a4455",
+                        "tertiary": "#ffb784",
+                        "error": "#ffb4ab",
+                        "on-primary": "#3f008e",
+                        "inverse-on-surface": "#313030",
+                        "tertiary-container": "#a15100",
+                        "tertiary-fixed-dim": "#ffb784"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "container-margin": "16px",
+                        "element-gap": "8px",
+                        "list-item-height": "32px",
+                        "sidebar-padding": "12px"
+                    },
+                    "fontFamily": {
+                        "kbd-shortcut": ["JetBrains Mono"],
+                        "sidebar-title": ["Geist"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-compact": ["Inter"],
+                        "body-main": ["Inter"]
+                    },
+                    "fontSize": {
+                        "kbd-shortcut": ["11px", { "lineHeight": "12px", "fontWeight": "400" }],
+                        "sidebar-title": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-compact": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "body-main": ["13px", { "lineHeight": "18px", "letterSpacing": "0px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+        }
+        /* Custom scrollbar for narrow container */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #393939;
+        }
+        
+        .glass-card {
+            background-color: rgba(22, 22, 22, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid #2E2E2E;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 8px;
+        }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface h-screen w-full flex justify-center overflow-hidden font-body-main">
+<!-- Browser Extension Container Simulation -->
+<div class="h-full w-[350px] bg-surface-container-lowest border-x border-outline-variant/30 flex flex-col relative">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-surface-container-lowest text-primary flex flex-col w-full p-sidebar-padding gap-element-gap docked full-width top-0 transition-all duration-150 ease-out z-10 border-b border-surface-variant/30">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-sidebar-title text-sidebar-title font-bold text-on-surface">OmniPanel</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<button class="p-1 rounded hover:bg-surface-variant/5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">settings</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-variant/5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">history</span>
+</button>
+</div>
+</div>
+<!-- Contextual Header for Sticky Notes -->
+<div class="flex items-center justify-between mt-2">
+<h1 class="font-sidebar-title text-sidebar-title text-on-surface">Sticky Notes</h1>
+<button class="bg-primary-container text-on-primary-container rounded-lg px-3 py-1 flex items-center gap-1 hover:bg-primary-container/90 transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span class="font-body-compact text-body-compact font-medium">New Note</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="relative mt-1 group">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[14px] text-outline">search</span>
+<input class="w-full bg-[#161616] border border-[#2E2E2E] rounded-lg py-1.5 pl-8 pr-8 font-body-compact text-body-compact text-on-surface placeholder:text-outline focus:outline-none focus:border-secondary transition-colors h-list-item-height" placeholder="Search notes..." type="text"/>
+<div class="absolute right-2 top-1/2 -translate-y-1/2 border border-[#2E2E2E] rounded px-1 flex items-center bg-surface-container-lowest">
+<span class="font-kbd-shortcut text-kbd-shortcut text-outline">⌘K</span>
+</div>
+</div>
+</header>
+<!-- Main Content Area with Masonry Grid -->
+<main class="flex-1 overflow-y-auto p-sidebar-padding">
+<!-- Tags Row -->
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="border border-[#2E2E2E] bg-surface-variant/20 rounded px-2 py-0.5 font-label-caps text-label-caps text-on-surface flex items-center gap-1 cursor-pointer hover:bg-surface-variant/40 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> All
+                </span>
+<span class="border border-[#2E2E2E] rounded px-2 py-0.5 font-label-caps text-label-caps text-outline hover:text-on-surface hover:border-outline transition-colors cursor-pointer flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Work
+                </span>
+<span class="border border-[#2E2E2E] rounded px-2 py-0.5 font-label-caps text-label-caps text-outline hover:text-on-surface hover:border-outline transition-colors cursor-pointer flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Ideas
+                </span>
+<span class="border border-[#2E2E2E] rounded px-2 py-0.5 font-label-caps text-label-caps text-outline hover:text-on-surface hover:border-outline transition-colors cursor-pointer flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Urgent
+                </span>
+</div>
+<!-- Masonry Grid -->
+<div class="masonry-grid">
+<!-- Note Card 1 (Yellow/Warning tint) -->
+<div class="masonry-item glass-card rounded-xl p-3 relative group cursor-pointer hover:border-outline transition-colors">
+<div class="absolute inset-0 bg-tertiary/5 rounded-xl pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-tertiary flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-tertiary"></span> Ideas
+                        </span>
+<span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover:opacity-100 transition-opacity">push_pin</span>
+</div>
+<h3 class="font-sidebar-title text-sidebar-title text-on-surface mb-1 relative z-10">Redesign Sidebar UX</h3>
+<p class="font-body-compact text-body-compact text-on-surface-variant line-clamp-4 relative z-10 leading-relaxed">
+                        Need to implement a masonry layout for the sticky notes. Use glassmorphism for the cards and keep the padding tight. Ensure it fits within 350px.
+                    </p>
+<div class="mt-3 flex justify-between items-center relative z-10">
+<span class="font-label-caps text-label-caps text-outline">Just now</span>
+</div>
+</div>
+<!-- Note Card 2 (Blue tint) -->
+<div class="masonry-item glass-card rounded-xl p-3 relative group cursor-pointer hover:border-outline transition-colors">
+<div class="absolute inset-0 bg-secondary/5 rounded-xl pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-secondary flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-secondary"></span> Work
+                        </span>
+</div>
+<h3 class="font-sidebar-title text-sidebar-title text-on-surface mb-1 relative z-10">API Meeting Notes</h3>
+<ul class="font-body-compact text-body-compact text-on-surface-variant relative z-10 space-y-1 ml-1">
+<li class="flex gap-1.5"><span class="text-primary">•</span> Deprecate v1 endpoints</li>
+<li class="flex gap-1.5"><span class="text-primary">•</span> Update documentation</li>
+<li class="flex gap-1.5"><span class="text-primary">•</span> Check rate limits</li>
+</ul>
+<div class="mt-3 flex justify-between items-center relative z-10">
+<span class="font-label-caps text-label-caps text-outline">2h ago</span>
+</div>
+</div>
+<!-- Note Card 3 (Red tint - Urgent) -->
+<div class="masonry-item glass-card rounded-xl p-3 relative group cursor-pointer hover:border-outline transition-colors border-error/30">
+<div class="absolute inset-0 bg-error/5 rounded-xl pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-error flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-error"></span> Urgent
+                        </span>
+<span class="material-symbols-outlined text-[14px] text-error">push_pin</span>
+</div>
+<h3 class="font-sidebar-title text-sidebar-title text-on-surface mb-1 relative z-10">Fix Production Bug</h3>
+<p class="font-body-compact text-body-compact text-on-surface-variant line-clamp-3 relative z-10">
+                        Authentication failing on iOS devices. Needs immediate hotfix before EOD.
+                    </p>
+<div class="mt-3 flex justify-between items-center relative z-10">
+<span class="font-label-caps text-label-caps text-error">Today</span>
+</div>
+</div>
+<!-- Note Card 4 (Purple tint) -->
+<div class="masonry-item glass-card rounded-xl p-3 relative group cursor-pointer hover:border-outline transition-colors">
+<div class="absolute inset-0 bg-primary/5 rounded-xl pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-primary flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-primary"></span> Personal
+                        </span>
+</div>
+<p class="font-body-compact text-body-compact text-on-surface-variant relative z-10 italic">
+                        "The details are not the details. They make the design." - Charles Eames
+                    </p>
+<div class="mt-3 flex justify-between items-center relative z-10">
+<span class="font-label-caps text-label-caps text-outline">Yesterday</span>
+</div>
+</div>
+<!-- Note Card 5 (Neutral) -->
+<div class="masonry-item glass-card rounded-xl p-3 relative group cursor-pointer hover:border-outline transition-colors">
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-outline flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-outline"></span> Draft
+                        </span>
+</div>
+<h3 class="font-sidebar-title text-sidebar-title text-on-surface mb-1 relative z-10">Grocery List</h3>
+<ul class="font-body-compact text-body-compact text-on-surface-variant relative z-10 space-y-1">
+<li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-outline">check_box_outline_blank</span> Oat milk</li>
+<li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-outline">check_box_outline_blank</span> Coffee beans</li>
+<li class="flex items-center gap-1.5 opacity-50"><span class="material-symbols-outlined text-[14px]">check_box</span> Avocados</li>
+</ul>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (SideNavBar logic adapted for bottom mobile/narrow view) -->
+<nav class="bg-surface text-primary flex items-center justify-around w-full p-2 border-t border-surface-variant/30 docked bottom-0 z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]">
+<button class="flex flex-col items-center gap-1 p-2 text-on-surface-variant hover:bg-surface-variant/10 rounded-lg transition-transform duration-100 scale-95 active:scale-90 w-16">
+<span class="material-symbols-outlined text-[20px]">checklist</span>
+<span class="font-label-caps text-label-caps text-[9px]">Todos</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 bg-primary/10 text-primary font-semibold rounded-xl transition-transform duration-100 scale-95 active:scale-90 w-16">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">sticky_note_2</span>
+<span class="font-label-caps text-label-caps text-[9px]">Sticky Notes</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 text-on-surface-variant hover:bg-surface-variant/10 rounded-lg transition-transform duration-100 scale-95 active:scale-90 w-16">
+<span class="material-symbols-outlined text-[20px]">bolt</span>
+<span class="font-label-caps text-label-caps text-[9px]">Quick Capture</span>
+</button>
+</nav>
+<!-- Mini FAB for Quick Note (Contextual) -->
+<button class="absolute bottom-20 right-4 w-10 h-10 rounded-full bg-primary-container text-on-primary-container shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex items-center justify-center hover:bg-primary-container/90 transition-transform hover:scale-105 active:scale-95 border border-primary/20 z-30 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</body></html>

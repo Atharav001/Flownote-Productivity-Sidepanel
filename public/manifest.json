@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Flownote",
+  "version": "1.0",
+  "description": "A modern dark-themed sidepanel extension with glassmorphism UI.",
+  "permissions": ["sidePanel"],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "action": {
+    "default_title": "Open Flownote",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "commands": {
+    "_execute_action": {
+      "description": "Open Flownote"
+    },
+    "quick_capture": {
+      "description": "Quick Capture"
+    }
+  }
+}
