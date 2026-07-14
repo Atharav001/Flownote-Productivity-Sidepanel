@@ -120,6 +120,7 @@ export async function fullSync(taskListId, localTodos, defaultCategory, onProgre
       const todo = fromGoogleTask(gt, defaultCategory);
       todo.id = Math.random().toString(36).substr(2, 9);
       todo.dirty = false;
+      todo.taskListId = taskListId;
       finalTodos.push(todo);
       importedCount.val++;
     }

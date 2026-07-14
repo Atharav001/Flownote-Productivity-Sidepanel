@@ -74,6 +74,17 @@ function App() {
   const [taskLists, setTaskLists] = useState([]);
   const [selectedTaskList, setSelectedTaskList] = useChromeStorage('flownote_selectedTaskList', null);
   const [syncInProgress, setSyncInProgress] = useState(false);
+
+  const activeLists = useMemo(() => {
+    return googleConnected && taskLists.length > 0 ? taskLists : [{ id: 'default', title: 'My Tasks' }];
+  }, [googleConnected, taskLists]);
+
+  const activeList = useMemo(() => {
+    if (!selectedTaskList) return activeLists[0];
+    const found = activeLists.find(l => l.id === selectedTaskList.id);
+    return found || activeLists[0];
+  }, [selectedTaskList, activeLists]);
+
   const [lastSyncTime, setLastSyncTime] = useState(getLastSyncTime());
   const [showSyncSettings, setShowSyncSettings] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -167,18 +178,39 @@ function App() {
   }, []);
 
   const handleSync = useCallback(async () => {
-    if (!selectedTaskList || !googleConnected) return;
+    if (!googleConnected || activeLists.length === 0) return;
     setSyncInProgress(true);
     setSyncMessage(null);
     try {
-      const result = await fullSync(selectedTaskList.id, todos, 'others', (msg) => {
-        setSyncMessage({ type: 'info', text: msg });
-      });
-      setTodos(result.todos);
+      setSyncMessage({ type: 'info', text: 'Syncing all lists with Google Tasks...' });
+      
+      let mergedTodos = [...todos];
+      let totalImported = 0;
+      let totalUpdated = 0;
+      let totalSynced = 0;
+      let totalErrors = 0;
+
+      for (const list of activeLists) {
+        if (list.id === 'default') continue;
+        
+        const listTodos = mergedTodos.filter(t => t.taskListId === list.id);
+        const result = await fullSync(list.id, listTodos, 'others', (msg) => {
+          setSyncMessage({ type: 'info', text: `Syncing "${list.title}": ${msg}` });
+        });
+
+        mergedTodos = mergedTodos.filter(t => t.taskListId !== list.id).concat(result.todos);
+        
+        totalImported += result.imported;
+        totalUpdated += result.updated;
+        totalSynced += result.synced;
+        totalErrors += result.errors;
+      }
+
+      setTodos(mergedTodos);
       setLastSyncTime(getLastSyncTime());
       setSyncMessage({
         type: 'success',
-        text: `Sync complete! ${result.imported} imported, ${result.updated} updated, ${result.synced} synced.`,
+        text: `Sync complete! Synced all lists. ${totalImported} imported, ${totalUpdated} updated, ${totalSynced} synced.`,
       });
       setTimeout(() => setSyncMessage(null), 5000);
     } catch (e) {
@@ -186,7 +218,7 @@ function App() {
     } finally {
       setSyncInProgress(false);
     }
-  }, [selectedTaskList, googleConnected, todos]);
+  }, [activeLists, googleConnected, todos]);
 
   const handleClose = () => window.close();
 
@@ -221,10 +253,11 @@ function App() {
   };
 
   const filteredTodos = useMemo(() => {
-    if (!searchQuery) return todos;
+    const listTodos = todos.filter(t => t.taskListId === activeList.id || (!t.taskListId && activeList.id === 'default'));
+    if (!searchQuery) return listTodos;
     const lowerQ = searchQuery.toLowerCase();
-    return todos.filter(t => t.title.toLowerCase().includes(lowerQ));
-  }, [todos, searchQuery]);
+    return listTodos.filter(t => t.title.toLowerCase().includes(lowerQ));
+  }, [todos, searchQuery, activeList]);
 
   const filteredSticky = useMemo(() => {
     if (!searchQuery) return stickyNotes;
@@ -402,7 +435,7 @@ function App() {
         <div className="flex-1 overflow-hidden relative">
           {isReady && (
             <AnimatePresence mode="wait">
-              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} selectedTaskList={selectedTaskList} syncInProgress={syncInProgress} /></motion.div>}
+              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} /></motion.div>}
               {activeTab === 'notes' && <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><NotesView stickyNotes={filteredSticky} longNotes={filteredLongNotes} setStickyNotes={setStickyNotes} setLongNotes={setLongNotes} onEditLongNote={handleEditLongNote} onEditStickyNote={handleEditStickyNote} /></motion.div>}
               {activeTab === 'editor' && <motion.div key="editor" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><RichEditorView note={editingNote} onSaveNote={saveLongNote} onCancel={() => { setEditingNote(null); setActiveTab('notes'); }} /></motion.div>}
               {activeTab === 'sticky-editor' && <motion.div key="sticky-editor" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="h-full"><StickyEditorView note={editingSticky} onSave={saveStickyNote} /></motion.div>}
@@ -514,37 +547,35 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
   );
 }
 
-function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleConnected, selectedTaskList, syncInProgress }) {
+function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColors, googleConnected, activeLists, activeList, onSelectTaskList, syncInProgress }) {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('today');
   
   const handleAdd = async (e) => {
     if (e.key === 'Enter' && newTaskTitle.trim()) {
-      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory, dirty: true };
-      if (googleConnected && selectedTaskList) {
+      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory, dirty: true, taskListId: activeList.id };
+      if (googleConnected && activeList.id !== 'default') {
         try {
-          const created = await insertTask(selectedTaskList.id, toGoogleTask(newTodo));
+          const created = await insertTask(activeList.id, toGoogleTask(newTodo));
           newTodo.googleTaskId = created.id;
           newTodo.dirty = false;
         } catch (err) {
           console.warn('Failed to push new task to Google:', err);
         }
       }
-      setTodos([...todos, newTodo]);
+      setTodos([...allTodos, newTodo]);
       setNewTaskTitle('');
     }
   };
 
   const updateTodo = async (id, updates) => {
-    const todo = todos.find(t => t.id === id);
+    const todo = allTodos.find(t => t.id === id);
     const updated = { ...todo, ...updates, dirty: true };
-    // Optimistically update locally
-    setTodos(todos.map(t => t.id === id ? updated : t));
+    setTodos(allTodos.map(t => t.id === id ? updated : t));
     
-    if (googleConnected && selectedTaskList && updated.googleTaskId) {
+    if (googleConnected && activeList.id !== 'default' && updated.googleTaskId) {
       try {
-        await updateGoogleTask(selectedTaskList.id, updated.googleTaskId, toGoogleTask(updated));
-        // Clear dirty flag if successfully updated on Google
+        await updateGoogleTask(activeList.id, updated.googleTaskId, toGoogleTask(updated));
         setTodos(prevTodos => prevTodos.map(t => t.id === id ? { ...updated, dirty: false } : t));
       } catch (err) {
         console.warn('Failed to update task in Google:', err);
@@ -553,14 +584,14 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
   };
 
   const deleteTodo = async (id) => {
-    const todo = todos.find(t => t.id === id);
-    setTodos(todos.filter(t => t.id !== id));
+    const todo = allTodos.find(t => t.id === id);
+    setTodos(allTodos.filter(t => t.id !== id));
     
     if (todo?.googleTaskId) {
       await queueDeletedTaskId(todo.googleTaskId);
-      if (googleConnected && selectedTaskList) {
+      if (googleConnected && activeList.id !== 'default') {
         try {
-          await deleteFromGoogle(selectedTaskList.id, todo.googleTaskId);
+          await deleteFromGoogle(activeList.id, todo.googleTaskId);
         } catch (err) {
           console.warn('Failed to delete task from Google:', err);
         }
@@ -604,6 +635,26 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
 
   return (
     <div className="flex flex-col h-full relative">
+      {/* List Navigation Bar */}
+      <div className="flex gap-2 px-4 py-3 overflow-x-auto border-b border-surface-variant/20 scrollbar-hide bg-surface-container-lowest/40 backdrop-blur-xl shrink-0 z-30">
+        {activeLists.map(list => {
+          const isSelected = activeList.id === list.id;
+          const listTaskCount = allTodos.filter(t => (t.taskListId === list.id || (!t.taskListId && list.id === 'default')) && !t.completed).length;
+          
+          return (
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              key={list.id}
+              onClick={() => onSelectTaskList(list)}
+              className={`rounded-full px-3.5 py-1.5 text-[11px] font-bold tracking-wide transition-all border shrink-0 flex items-center gap-2 ${isSelected ? 'bg-primary/20 border-primary/50 text-primary shadow-[0_2px_10px_rgba(124,58,237,0.15)] font-extrabold' : 'bg-surface-container border-surface-variant/40 text-on-surface-variant/80 hover:bg-surface-container-high hover:text-on-surface'}`}
+            >
+              <span>{list.title}</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${isSelected ? 'bg-primary/30 text-primary' : 'bg-surface-variant/70 text-on-surface-variant'}`}>{listTaskCount}</span>
+            </motion.button>
+          );
+        })}
+      </div>
+
       <div className="flex-1 overflow-y-auto p-4 flex flex-col scrollbar-hide pb-24">
         {renderCategoryBlock('today', 'Today')}
         {renderCategoryBlock('others', 'Others')}
