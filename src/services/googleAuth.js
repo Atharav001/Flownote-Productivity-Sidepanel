@@ -1,5 +1,6 @@
-function consumeLastError() {
-  try { void chrome.runtime.lastError; } catch {}
+function handleIdentityError() {
+  const err = chrome.runtime.lastError;
+  return err ? err.message : null;
 }
 
 export function signIn() {
@@ -9,9 +10,11 @@ export function signIn() {
       return;
     }
     chrome.identity.getAuthToken({ interactive: true }, (token) => {
-      consumeLastError();
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
+      const error = handleIdentityError();
+      if (error) {
+        reject(new Error(error));
+      } else if (!token) {
+        reject(new Error('No token returned'));
       } else {
         resolve(token);
       }
@@ -26,8 +29,8 @@ export function getToken() {
       return;
     }
     chrome.identity.getAuthToken({ interactive: false }, (token) => {
-      consumeLastError();
-      resolve(!chrome.runtime.lastError && token ? token : null);
+      const error = handleIdentityError();
+      resolve(error ? null : (token || null));
     });
   });
 }
@@ -39,13 +42,13 @@ export function clearAllCachedTokens() {
       return;
     }
     chrome.identity.getAuthToken({ interactive: false }, (currentToken) => {
-      consumeLastError();
-      if (chrome.runtime.lastError || !currentToken) {
+      const error = handleIdentityError();
+      if (error || !currentToken) {
         resolve();
         return;
       }
       chrome.identity.removeCachedAuthToken({ token: currentToken }, () => {
-        consumeLastError();
+        handleIdentityError();
         fetch(`https://accounts.google.com/o/oauth2/revoke?token=${currentToken}`)
           .catch(() => {})
           .finally(() => resolve());
@@ -65,8 +68,8 @@ export function isSignedIn() {
       return;
     }
     chrome.identity.getAuthToken({ interactive: false }, (token) => {
-      consumeLastError();
-      resolve(!!token && !chrome.runtime.lastError);
+      const error = handleIdentityError();
+      resolve(!!token && !error);
     });
   });
 }

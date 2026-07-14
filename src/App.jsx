@@ -76,6 +76,7 @@ function App() {
   const [syncInProgress, setSyncInProgress] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState(getLastSyncTime());
   const [showSyncSettings, setShowSyncSettings] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
 
   useEffect(() => {
@@ -109,6 +110,8 @@ function App() {
   }, []);
 
   const handleGoogleSignIn = useCallback(async () => {
+    setSigningIn(true);
+    setSyncMessage(null);
     try {
       await signIn();
       setGoogleConnected(true);
@@ -127,8 +130,10 @@ function App() {
           text: 'Sign in failed: OAuth configuration issue. Make sure your Google Cloud OAuth client has the correct Extension ID and the Tasks API is enabled.',
         });
       } else {
-        setSyncMessage({ type: 'error', text: msg });
+        setSyncMessage({ type: 'error', text: `Sign in failed: ${msg}` });
       }
+    } finally {
+      setSigningIn(false);
     }
   }, [selectedTaskList]);
 
@@ -333,9 +338,13 @@ function App() {
                   <motion.button
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                     onClick={handleGoogleSignIn}
-                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center"
+                    disabled={signingIn}
+                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center disabled:opacity-50 disabled:cursor-wait"
                   >
-                    <span className="material-symbols-outlined text-[18px]">login</span> Sign in with Google
+                    <span className={`material-symbols-outlined text-[18px] ${signingIn ? 'animate-spin' : ''}`}>
+                      {signingIn ? 'sync' : 'login'}
+                    </span>
+                    {signingIn ? 'Signing in...' : 'Sign in with Google'}
                   </motion.button>
                   <button
                     onClick={handleClearTokensAndRetry}
