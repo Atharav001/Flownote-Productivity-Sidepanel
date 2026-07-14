@@ -3,50 +3,52 @@
 @import "tailwindcss";
 
 :root {
-  --bg-background: #0f0f11;
-  --bg-surface: #17171a;
-  --bg-surface-container: #242429;
-  --bg-surface-container-low: #1e1e22;
-  --bg-surface-container-high: #2c2c32;
-  --bg-surface-container-highest: #35353d;
-  --bg-surface-container-lowest: #0a0a0c;
+  /* Premium Dark Theme */
+  --bg-background: #141415;
+  --bg-surface: #1e1e1f;
+  --bg-surface-container: #28282a;
+  --bg-surface-container-low: #222224;
+  --bg-surface-container-high: #333335;
+  --bg-surface-container-highest: #3e3e40;
+  --bg-surface-container-lowest: #0c0c0d;
   
-  --text-on-surface: #e4e2e6;
-  --text-on-surface-variant: #c7c5d0;
-  --text-outline: #918f9a;
-  --text-outline-variant: #47464f;
+  --text-on-surface: #f1f3f4;
+  --text-on-surface-variant: #a8abb1;
+  --text-outline: #75787c;
+  --text-outline-variant: #484b4f;
   
-  --primary: #b49bfa;
-  --on-primary: #380087;
-  --primary-container: #4f378b;
+  --primary: #a8c7fa; /* Google Blue Dark */
+  --on-primary: #062e6f;
+  --primary-container: #0842a0;
   
-  --secondary: #89ceff;
-  --tertiary: #ffb784;
-  --error: #ffb4ab;
+  --secondary: #7fcfff;
+  --tertiary: #ffb4a9;
+  --error: #ff897d;
   --theme-color-scheme: dark;
 }
 
 :root.light {
+  /* Premium Light Theme - Google Tasks Aesthetic */
   --bg-background: #f8f9fa;
   --bg-surface: #ffffff;
   --bg-surface-container: #f1f3f4;
-  --bg-surface-container-low: #f5f6f7;
+  --bg-surface-container-low: #f8f9fa;
   --bg-surface-container-high: #e8eaed;
   --bg-surface-container-highest: #dadce0;
   --bg-surface-container-lowest: #ffffff;
   
-  --text-on-surface: #1f1f1f;
+  --text-on-surface: #202124;
   --text-on-surface-variant: #5f6368;
-  --text-outline: #747775;
-  --text-outline-variant: #c4c7c5;
+  --text-outline: #80868b;
+  --text-outline-variant: #bdc1c6;
   
-  --primary: #7c3aed;
+  --primary: #0b57d0; /* Google Blue Light */
   --on-primary: #ffffff;
-  --primary-container: #eaddff;
+  --primary-container: #d3e3fd;
   
-  --secondary: #007acc;
-  --tertiary: #c26400;
-  --error: #ba1a1a;
+  --secondary: #007b83;
+  --tertiary: #a50e0e;
+  --error: #b3261e;
   --theme-color-scheme: light;
 }
 
