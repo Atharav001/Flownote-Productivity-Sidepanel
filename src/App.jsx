@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { signIn, signOut, isSignedIn, getStoredClientId } from './services/googleAuth.js';
+import { signIn, signOut, isSignedIn } from './services/googleAuth.js';
 import { listTaskLists, insertTask, updateTask as updateGoogleTask, toGoogleTask } from './services/googleTasks.js';
 import { fullSync, deleteFromGoogle, getLastSyncTime } from './services/taskSync.js';
-import SetupGuide from './components/SetupGuide.jsx';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -77,7 +76,6 @@ function App() {
   const [syncInProgress, setSyncInProgress] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState(getLastSyncTime());
   const [showSyncSettings, setShowSyncSettings] = useState(false);
-  const [showSetupGuide, setShowSetupGuide] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
 
   useEffect(() => {
@@ -86,30 +84,27 @@ function App() {
         setActiveTab('editor');
         setEditingNote(null);
       }
+      if (request.action === 'background_sync' && googleConnected && selectedTaskList) {
+        handleSync();
+      }
     };
     if (chrome && chrome.runtime && chrome.runtime.onMessage) {
       chrome.runtime.onMessage.addListener(handleMessage);
       return () => chrome.runtime.onMessage.removeListener(handleMessage);
     }
-  }, []);
+  }, [googleConnected, selectedTaskList]);
 
   useEffect(() => {
-    getStoredClientId().then(clientId => {
-      if (!clientId) {
-        setShowSetupGuide(true);
-        return;
+    isSignedIn().then(connected => {
+      if (connected) {
+        setGoogleConnected(true);
+        listTaskLists().then(lists => {
+          setTaskLists(lists);
+          if (!selectedTaskList && lists.length > 0) {
+            setSelectedTaskList(lists[0]);
+          }
+        }).catch(() => {});
       }
-      isSignedIn().then(connected => {
-        if (connected) {
-          setGoogleConnected(true);
-          listTaskLists().then(lists => {
-            setTaskLists(lists);
-            if (!selectedTaskList && lists.length > 0) {
-              setSelectedTaskList(lists[0]);
-            }
-          }).catch(() => {});
-        }
-      });
     });
   }, []);
 
@@ -117,7 +112,6 @@ function App() {
     try {
       await signIn();
       setGoogleConnected(true);
-      setShowSetupGuide(false);
       const lists = await listTaskLists();
       setTaskLists(lists);
       if (lists.length > 0) {
@@ -305,40 +299,25 @@ function App() {
             className="border-b border-surface-variant/30 bg-surface-container-low/80 backdrop-blur-md"
           >
             <div className="px-4 py-3 flex flex-col gap-3">
-              {!googleConnected && showSetupGuide ? (
-                <SetupGuide
-                  onClientIdSet={handleGoogleSignIn}
-                  onBack={() => setShowSyncSettings(false)}
-                />
-              ) : !googleConnected ? (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-on-surface flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
-                    </span>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    onClick={handleGoogleSignIn}
-                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">login</span> Sign in with Google
-                  </motion.button>
-                  <button
-                    onClick={() => setShowSetupGuide(true)}
-                    className="text-[10px] text-primary/70 hover:text-primary font-bold uppercase text-center"
-                  >
-                    Need to configure OAuth? Setup Guide →
-                  </button>
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
+                </span>
+                {googleConnected && (
+                  <span className="text-[10px] font-bold text-green-400 uppercase bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/30">Connected</span>
+                )}
+              </div>
+
+              {!googleConnected ? (
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={handleGoogleSignIn}
+                  className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center"
+                >
+                  <span className="material-symbols-outlined text-[18px]">login</span> Sign in with Google
+                </motion.button>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-on-surface flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
-                    </span>
-                    <span className="text-[10px] font-bold text-green-400 uppercase bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/30">Connected</span>
-                  </div>
                   <div className="flex items-center gap-2">
                     <select
                       value={selectedTaskList?.id || ''}
@@ -366,20 +345,12 @@ function App() {
                     {lastSyncTime && (
                       <span className="text-[10px] text-outline font-bold">Last sync: {new Date(lastSyncTime).toLocaleString()}</span>
                     )}
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setShowSetupGuide(true)}
-                        className="text-[10px] text-primary/70 hover:text-primary font-bold uppercase"
-                      >
-                        Settings
-                      </button>
-                      <button
-                        onClick={handleGoogleSignOut}
-                        className="text-[10px] text-error/70 hover:text-error font-bold uppercase"
-                      >
-                        Disconnect
-                      </button>
-                    </div>
+                    <button
+                      onClick={handleGoogleSignOut}
+                      className="text-[10px] text-error/70 hover:text-error font-bold uppercase"
+                    >
+                      Disconnect
+                    </button>
                   </div>
                 </div>
               )}

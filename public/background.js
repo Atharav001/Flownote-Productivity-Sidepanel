@@ -1,7 +1,16 @@
-// Allows users to open the side panel by clicking on the action toolbar icon
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.alarms.create('syncTasks', { periodInMinutes: 10 });
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'syncTasks') {
+    chrome.runtime.sendMessage({ action: 'background_sync' }).catch(() => {});
+  }
+});
 
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'quick_capture') {

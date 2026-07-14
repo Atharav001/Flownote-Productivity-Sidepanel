@@ -1,13 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "flownote",
+  "name": "Flownote",
   "version": "1.0",
-  "description": "A modern dark-themed sidebar miniapp.",
+  "description": "A modern dark-themed task manager and notes sidepanel with Google Tasks sync.",
   "permissions": [
     "sidePanel",
     "storage",
-    "identity"
+    "identity",
+    "alarms"
   ],
+  "oauth2": {
+    "client_id": "258022490567-13ff2n3qsiuqsiucdb8c3jq39ha88ebi.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/tasks"
+    ]
+  },
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
@@ -26,5 +33,13 @@
   },
   "side_panel": {
     "default_path": "index.html"
+  },
+  "commands": {
+    "_execute_action": {
+      "description": "Open Flownote"
+    },
+    "quick_capture": {
+      "description": "Quick Capture"
+    }
   }
 }
