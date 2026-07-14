@@ -535,8 +535,6 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, y: -10 }} 
-      animate={{ opacity: 1, y: 0 }} 
       exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
       whileHover={{ scale: 1.01, x: 2 }}
       transition={{ type: "spring", stiffness: 350, damping: 28 }}
@@ -685,45 +683,56 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col scrollbar-hide pb-24">
-        {/* Active Tasks List */}
-        <div className="flex flex-col gap-2 relative z-10">
-          <AnimatePresence>
-            {activeTodos.map(t => (
-              <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />
-            ))}
-          </AnimatePresence>
-          {activeTodos.length === 0 && (
-            <div className="py-8 text-center font-body-compact text-sm italic opacity-60 text-outline">
-              No active tasks in this list!
-            </div>
-          )}
-        </div>
-
-        {/* Toggle Completed Tasks */}
-        {completedTodos.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mt-6 border-t border-surface-variant/20 pt-4 mb-2">
-              <span className="text-xs font-bold text-outline uppercase tracking-wider">Completed Tasks</span>
-              <button 
-                onClick={() => setShowCompleted(!showCompleted)}
-                className="text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase flex items-center gap-1"
-              >
-                <span className="material-symbols-outlined text-[16px]">{showCompleted ? 'visibility_off' : 'visibility'}</span>
-                {showCompleted ? 'Hide' : `Show (${completedTodos.length})`}
-              </button>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeList.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            className="flex-grow flex flex-col"
+          >
+            {/* Active Tasks List */}
+            <div className="flex flex-col gap-2 relative z-10">
+              <AnimatePresence>
+                {activeTodos.map(t => (
+                  <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />
+                ))}
+              </AnimatePresence>
+              {activeTodos.length === 0 && (
+                <div className="py-8 text-center font-body-compact text-sm italic opacity-60 text-outline">
+                  No active tasks in this list!
+                </div>
+              )}
             </div>
 
-            {showCompleted && (
-              <div className="flex flex-col gap-2 opacity-70 mt-2">
-                <AnimatePresence>
-                  {completedTodos.map(t => (
-                    <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />
-                  ))}
-                </AnimatePresence>
-              </div>
+            {/* Toggle Completed Tasks */}
+            {completedTodos.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mt-6 border-t border-surface-variant/20 pt-4 mb-2">
+                  <span className="text-xs font-bold text-outline uppercase tracking-wider">Completed Tasks</span>
+                  <button 
+                    onClick={() => setShowCompleted(!showCompleted)}
+                    className="text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">{showCompleted ? 'visibility_off' : 'visibility'}</span>
+                    {showCompleted ? 'Hide' : `Show (${completedTodos.length})`}
+                  </button>
+                </div>
+
+                {showCompleted && (
+                  <div className="flex flex-col gap-2 opacity-70 mt-2">
+                    <AnimatePresence>
+                      {completedTodos.map(t => (
+                        <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Input Footer */}
