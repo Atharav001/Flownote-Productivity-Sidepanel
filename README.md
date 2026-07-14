@@ -95,6 +95,40 @@ Toggle the **Developer mode** switch ON. Click **Load unpacked** and select the 
 Navigate to `brave://extensions/shortcuts` and bind a keyboard shortcut (e.g., `Cmd+Shift+X`) to instantly toggle your Flownote sidepanel!
 
 ---
+
+## 🔑 Google Tasks Sync & OAuth Setup
+
+Flownote features robust, bi-directional sync with your Google Tasks account. To configure Google Sign-In for your deployment:
+
+### 1. Configure Google Cloud Console
+1. Visit the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project (or select an existing one).
+3. Navigate to **APIs & Services** > **Library** and enable the **Google Tasks API**.
+4. Go to the **OAuth consent screen** tab, choose **External** (or Internal for organization-restricted testing), fill out the required app details, and add the `https://www.googleapis.com/auth/tasks` scope.
+5. Navigate to **Credentials** > **Create Credentials** > **OAuth client ID**.
+6. Select **Chrome Extension** as the Application type.
+7. Enter your **Extension ID** (you can find this on your browser's extensions management page after loading the extension).
+8. Copy the generated **Client ID**.
+
+### 2. Update the Manifest File
+Open [public/manifest.json](file:///Users/atharavnarangmac/Desktop/Manipal%20CLG/Project/opencode/Flownote/public/manifest.json) and replace the `"oauth2"` block with your Client ID:
+```json
+  "oauth2": {
+    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/tasks"
+    ]
+  }
+```
+
+### 3. Ensure a Stable Extension ID during Development (Recommended)
+As noted in Chrome Extension best practices, the extension ID changes between development and production because it's derived from the directory path. To keep it stable so your OAuth configuration doesn't break:
+1. Pack the extension once (`chrome://extensions` -> **Pack extension**).
+2. Open the generated `.crx` file as a ZIP, or extract the public key.
+3. Add the `"key"` property containing your public key directly to your `public/manifest.json` file.
+
+---
+
 <div align="center">
   <i>Designed for deep focus.</i><br/>
   <b>#Productivity</b> • <b>#React19</b> • <b>#ProfessionalTools</b> • <b>#Glassmorphism</b>

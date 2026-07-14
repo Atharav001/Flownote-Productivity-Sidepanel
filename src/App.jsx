@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { signIn, signOut, isSignedIn, clearAllCachedTokens } from './services/googleAuth.js';
 import { listTaskLists, insertTask, updateTask as updateGoogleTask, toGoogleTask } from './services/googleTasks.js';
-import { fullSync, deleteFromGoogle, getLastSyncTime } from './services/taskSync.js';
+import { fullSync, deleteFromGoogle, getLastSyncTime, queueDeletedTaskId } from './services/taskSync.js';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -77,6 +77,7 @@ function App() {
   const [lastSyncTime, setLastSyncTime] = useState(getLastSyncTime());
   const [showSyncSettings, setShowSyncSettings] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const signingInRef = useRef(false);
   const [syncMessage, setSyncMessage] = useState(null);
 
   useEffect(() => {
@@ -110,6 +111,8 @@ function App() {
   }, []);
 
   const handleGoogleSignIn = useCallback(async () => {
+    if (signingInRef.current) return;
+    signingInRef.current = true;
     setSigningIn(true);
     setSyncMessage(null);
     try {
@@ -133,6 +136,7 @@ function App() {
         setSyncMessage({ type: 'error', text: `Sign in failed: ${msg}` });
       }
     } finally {
+      signingInRef.current = false;
       setSigningIn(false);
     }
   }, [selectedTaskList]);
@@ -516,11 +520,12 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
   
   const handleAdd = async (e) => {
     if (e.key === 'Enter' && newTaskTitle.trim()) {
-      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory };
+      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory, dirty: true };
       if (googleConnected && selectedTaskList) {
         try {
           const created = await insertTask(selectedTaskList.id, toGoogleTask(newTodo));
           newTodo.googleTaskId = created.id;
+          newTodo.dirty = false;
         } catch (err) {
           console.warn('Failed to push new task to Google:', err);
         }
@@ -532,11 +537,15 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
 
   const updateTodo = async (id, updates) => {
     const todo = todos.find(t => t.id === id);
-    const updated = { ...todo, ...updates };
+    const updated = { ...todo, ...updates, dirty: true };
+    // Optimistically update locally
     setTodos(todos.map(t => t.id === id ? updated : t));
+    
     if (googleConnected && selectedTaskList && updated.googleTaskId) {
       try {
         await updateGoogleTask(selectedTaskList.id, updated.googleTaskId, toGoogleTask(updated));
+        // Clear dirty flag if successfully updated on Google
+        setTodos(prevTodos => prevTodos.map(t => t.id === id ? { ...updated, dirty: false } : t));
       } catch (err) {
         console.warn('Failed to update task in Google:', err);
       }
@@ -546,11 +555,15 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
   const deleteTodo = async (id) => {
     const todo = todos.find(t => t.id === id);
     setTodos(todos.filter(t => t.id !== id));
-    if (googleConnected && selectedTaskList && todo?.googleTaskId) {
-      try {
-        await deleteFromGoogle(selectedTaskList.id, todo.googleTaskId);
-      } catch (err) {
-        console.warn('Failed to delete task from Google:', err);
+    
+    if (todo?.googleTaskId) {
+      await queueDeletedTaskId(todo.googleTaskId);
+      if (googleConnected && selectedTaskList) {
+        try {
+          await deleteFromGoogle(selectedTaskList.id, todo.googleTaskId);
+        } catch (err) {
+          console.warn('Failed to delete task from Google:', err);
+        }
       }
     }
   };
