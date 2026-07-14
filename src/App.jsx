@@ -283,28 +283,52 @@ function App() {
         </div>
 
         <div className="flex flex-col gap-4 w-full items-center">
+          {/* Todos Button */}
           <motion.button 
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             onClick={() => { setActiveTab('todos'); setEditingNote(null); setEditingSticky(null); }}
-            className={`rounded-[14px] flex items-center justify-center w-12 h-12 transition-all duration-200 group relative border ${activeTab === 'todos' ? 'bg-primary/20 text-primary border-primary shadow-[0_0_15px_rgba(124,58,237,0.3)]' : 'text-on-surface-variant hover:bg-surface-variant/40 border-transparent hover:border-outline-variant/30'}`}
+            className={`w-12 h-12 rounded-[14px] flex items-center justify-center relative border transition-all duration-300 ${activeTab === 'todos' ? 'text-primary border-primary/20 shadow-[0_0_15px_rgba(124,58,237,0.15)] font-bold' : 'text-on-surface-variant border-transparent hover:text-on-surface'}`}
           >
-            <span className="material-symbols-outlined fill">{activeTab === 'todos' ? 'fact_check' : 'checklist'}</span>
+            {activeTab === 'todos' && (
+              <motion.div
+                layoutId="activeTabIndicator"
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                className="absolute inset-0 bg-primary/10 rounded-[12px] border border-primary/20"
+              />
+            )}
+            <span className="material-symbols-outlined fill relative z-10">{activeTab === 'todos' ? 'fact_check' : 'checklist'}</span>
           </motion.button>
           
+          {/* Notes Button */}
           <motion.button 
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             onClick={() => { setActiveTab('notes'); setEditingNote(null); setEditingSticky(null); }}
-            className={`rounded-[14px] flex items-center justify-center w-12 h-12 transition-all duration-200 group relative border ${activeTab === 'notes' ? 'bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'text-on-surface-variant hover:bg-surface-variant/40 border-transparent hover:border-outline-variant/30'}`}
+            className={`w-12 h-12 rounded-[14px] flex items-center justify-center relative border transition-all duration-300 ${activeTab === 'notes' ? 'text-secondary border-secondary/20 shadow-[0_0_15px_rgba(59,130,246,0.15)] font-bold' : 'text-on-surface-variant border-transparent hover:text-on-surface'}`}
           >
-            <span className="material-symbols-outlined fill">{activeTab === 'notes' ? 'sticky_note_2' : 'note'}</span>
+            {activeTab === 'notes' && (
+              <motion.div
+                layoutId="activeTabIndicator"
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                className="absolute inset-0 bg-secondary/10 rounded-[12px] border border-secondary/20"
+              />
+            )}
+            <span className="material-symbols-outlined fill relative z-10">{activeTab === 'notes' ? 'sticky_note_2' : 'note'}</span>
           </motion.button>
           
+          {/* Editor Button */}
           <motion.button 
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             onClick={() => { setActiveTab('editor'); setEditingNote(null); setEditingSticky(null); }}
-            className={`rounded-[14px] flex items-center justify-center w-12 h-12 transition-all duration-200 group relative border ${activeTab === 'editor' ? 'bg-tertiary/20 text-tertiary border-tertiary shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-on-surface-variant hover:bg-surface-variant/40 border-transparent hover:border-outline-variant/30'}`}
+            className={`w-12 h-12 rounded-[14px] flex items-center justify-center relative border transition-all duration-300 ${activeTab === 'editor' ? 'text-tertiary border-tertiary/20 shadow-[0_0_15px_rgba(245,158,11,0.15)] font-bold' : 'text-on-surface-variant border-transparent hover:text-on-surface'}`}
           >
-            <span className="material-symbols-outlined fill">{activeTab === 'editor' ? 'edit_document' : 'edit_square'}</span>
+            {activeTab === 'editor' && (
+              <motion.div
+                layoutId="activeTabIndicator"
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                className="absolute inset-0 bg-tertiary/10 rounded-[12px] border border-tertiary/20"
+              />
+            )}
+            <span className="material-symbols-outlined fill relative z-10">{activeTab === 'editor' ? 'edit_document' : 'edit_square'}</span>
           </motion.button>
         </div>
 
@@ -358,9 +382,9 @@ function App() {
         <div className="flex-1 overflow-hidden relative">
           {isReady && (
             <AnimatePresence mode="wait">
-              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} setSyncMessage={setSyncMessage} /></motion.div>}
-              {activeTab === 'notes' && <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><NotesView stickyNotes={filteredSticky} longNotes={filteredLongNotes} setStickyNotes={setStickyNotes} setLongNotes={setLongNotes} onEditLongNote={handleEditLongNote} onEditStickyNote={handleEditStickyNote} /></motion.div>}
-              {activeTab === 'editor' && <motion.div key="editor" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><RichEditorView note={editingNote} onSaveNote={saveLongNote} onCancel={() => { setEditingNote(null); setActiveTab('notes'); }} /></motion.div>}
+              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }} transition={{ type: "spring", stiffness: 350, damping: 30 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} setSyncMessage={setSyncMessage} /></motion.div>}
+              {activeTab === 'notes' && <motion.div key="notes" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }} transition={{ type: "spring", stiffness: 350, damping: 30 }} className="h-full"><NotesView stickyNotes={filteredSticky} longNotes={filteredLongNotes} setStickyNotes={setStickyNotes} setLongNotes={setLongNotes} onEditLongNote={handleEditLongNote} onEditStickyNote={handleEditStickyNote} /></motion.div>}
+              {activeTab === 'editor' && <motion.div key="editor" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }} transition={{ type: "spring", stiffness: 350, damping: 30 }} className="h-full"><RichEditorView note={editingNote} onSaveNote={saveLongNote} onCancel={() => { setEditingNote(null); setActiveTab('notes'); }} /></motion.div>}
               {activeTab === 'sticky-editor' && <motion.div key="sticky-editor" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="h-full"><StickyEditorView note={editingSticky} onSave={saveStickyNote} /></motion.div>}
             </AnimatePresence>
           )}
@@ -511,15 +535,27 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, scale: 0.9 }}
-      whileHover={{ scale: 1.01 }}
-      className={`min-h-[44px] flex items-center gap-3 px-3 py-2 rounded-xl group transition-all duration-200 hover:shadow-md border ${todo.completed ? 'opacity-40 bg-black/10 border-transparent grayscale-[50%]' : 'bg-black/20 border-transparent hover:bg-black/40 hover:border-white/10'}`}
+      initial={{ opacity: 0, y: -10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
+      whileHover={{ scale: 1.01, x: 2 }}
+      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+      className={`min-h-[44px] flex items-center gap-3 px-3 py-2 rounded-xl group transition-all duration-300 border ${todo.completed ? 'opacity-40 bg-black/10 border-transparent grayscale-[50%]' : 'bg-black/20 border-transparent hover:bg-black/35 hover:border-white/5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.25)]'}`}
     >
       <div className="p-1 -m-1 cursor-pointer" onClick={toggleComplete}>
         <button 
           className={`w-[22px] h-[22px] rounded-md border-[2px] flex items-center justify-center transition-all shrink-0 ${todo.completed ? 'border-primary bg-primary text-on-primary scale-110' : 'border-outline hover:border-primary bg-transparent'}`}
         >
-          {todo.completed && <span className="material-symbols-outlined text-[14px] font-bold">check</span>}
+          {todo.completed ? (
+            <svg width="12" height="10" viewBox="0 0 12 10" fill="none" className="stroke-current stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
+              <motion.path 
+                d="M1.5 5L4.5 8L10.5 1.5"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
+              />
+            </svg>
+          ) : null}
         </button>
       </div>
       
@@ -632,10 +668,17 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               key={list.id}
               onClick={() => onSelectTaskList(list)}
-              className={`rounded-full px-3.5 py-1.5 text-[11px] font-bold tracking-wide transition-all border shrink-0 flex items-center gap-2 ${isSelected ? 'bg-primary/20 border-primary/50 text-primary shadow-[0_2px_10px_rgba(124,58,237,0.15)] font-extrabold' : 'bg-surface-container border-surface-variant/40 text-on-surface-variant/80 hover:bg-surface-container-high hover:text-on-surface'}`}
+              className={`relative rounded-full px-3.5 py-1.5 text-[11px] font-bold tracking-wide transition-all border shrink-0 flex items-center gap-2 ${isSelected ? 'text-primary border-primary/20 font-extrabold shadow-[0_2px_10px_rgba(124,58,237,0.1)]' : 'bg-surface-container border-surface-variant/40 text-on-surface-variant/80 hover:bg-surface-container-high'}`}
             >
-              <span>{list.title}</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${isSelected ? 'bg-primary/30 text-primary' : 'bg-surface-variant/70 text-on-surface-variant'}`}>{listTaskCount}</span>
+              {isSelected && (
+                <motion.div
+                  layoutId="activeListIndicator"
+                  transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                  className="absolute inset-0 bg-primary/10 rounded-full border border-primary/30"
+                />
+              )}
+              <span className="relative z-10">{list.title}</span>
+              <span className={`relative z-10 px-1.5 py-0.2 rounded-full text-[9px] font-bold ${isSelected ? 'bg-primary/20 text-primary' : 'bg-surface-variant/70 text-on-surface-variant'}`}>{listTaskCount}</span>
             </motion.button>
           );
         })}
@@ -729,11 +772,15 @@ function NotesView({ stickyNotes, longNotes, setStickyNotes, setLongNotes, onEdi
             <AnimatePresence>
               {stickyNotes.map(note => (
                 <motion.div 
-                  layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} 
+                  layout 
+                  initial={{ opacity: 0, scale: 0.92, y: 15 }} 
+                  animate={{ opacity: 1, scale: 1, y: 0 }} 
+                  exit={{ opacity: 0, scale: 0.85, y: -10 }} 
                   key={note.id} 
                   onClick={() => onEditStickyNote(note)}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  className="glass-card rounded-2xl p-4 relative group border transition-all cursor-pointer shadow-lg hover:shadow-xl" 
+                  whileHover={{ y: -6, scale: 1.03, rotate: 1.2, boxShadow: "0px 12px 30px rgba(0,0,0,0.4)" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="glass-card rounded-2xl p-4 relative group border transition-all cursor-pointer shadow-lg" 
                   style={{ backgroundColor: `${note.color}1A`, borderColor: `${note.color}66` }}
                 >
                   <div className="flex justify-between items-start mb-3 relative z-10">
@@ -775,10 +822,14 @@ function NotesView({ stickyNotes, longNotes, setStickyNotes, setLongNotes, onEdi
             <AnimatePresence>
               {longNotes.map(note => (
                 <motion.div 
-                  layout initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} 
+                  layout 
+                  initial={{ opacity: 0, x: 20, scale: 0.98 }} 
+                  animate={{ opacity: 1, x: 0, scale: 1 }} 
+                  exit={{ opacity: 0, x: -20, scale: 0.98 }} 
                   key={note.id} 
                   onClick={() => onEditLongNote(note)}
-                  whileHover={{ x: 4 }}
+                  whileHover={{ x: 6, scale: 1.01, boxShadow: "0px 8px 30px rgba(0,0,0,0.3)" }}
+                  transition={{ type: "spring", stiffness: 350, damping: 25 }}
                   className="bg-surface-container-high hover:bg-surface-container-highest cursor-pointer border border-surface-variant/50 rounded-2xl p-4 relative group shadow-md transition-all"
                 >
                   <div className="flex justify-between items-start mb-2">
