@@ -5,7 +5,8 @@
   "description": "A modern dark-themed sidebar miniapp.",
   "permissions": [
     "sidePanel",
-    "storage"
+    "storage",
+    "identity"
   ],
   "icons": {
     "16": "icon.png",

@@ -3,7 +3,7 @@
   "name": "Flownote",
   "version": "1.0",
   "description": "A modern dark-themed sidepanel extension with glassmorphism UI.",
-  "permissions": ["sidePanel"],
+  "permissions": ["sidePanel", "storage", "identity"],
   "icons": {
     "16": "icon.png",
     "48": "icon.png",

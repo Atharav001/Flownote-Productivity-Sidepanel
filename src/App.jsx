@@ -1,5 +1,9 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signIn, signOut, isSignedIn, getStoredClientId } from './services/googleAuth.js';
+import { listTaskLists, insertTask, updateTask as updateGoogleTask, toGoogleTask } from './services/googleTasks.js';
+import { fullSync, deleteFromGoogle, getLastSyncTime } from './services/taskSync.js';
+import SetupGuide from './components/SetupGuide.jsx';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -67,6 +71,15 @@ function App() {
   const [editingNote, setEditingNote] = useState(null);
   const [editingSticky, setEditingSticky] = useState(null);
 
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [taskLists, setTaskLists] = useState([]);
+  const [selectedTaskList, setSelectedTaskList] = useChromeStorage('flownote_selectedTaskList', null);
+  const [syncInProgress, setSyncInProgress] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState(getLastSyncTime());
+  const [showSyncSettings, setShowSyncSettings] = useState(false);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const [syncMessage, setSyncMessage] = useState(null);
+
   useEffect(() => {
     const handleMessage = (request) => {
       if (request.action === 'open_quick_capture') {
@@ -79,6 +92,78 @@ function App() {
       return () => chrome.runtime.onMessage.removeListener(handleMessage);
     }
   }, []);
+
+  useEffect(() => {
+    getStoredClientId().then(clientId => {
+      if (!clientId) {
+        setShowSetupGuide(true);
+        return;
+      }
+      isSignedIn().then(connected => {
+        if (connected) {
+          setGoogleConnected(true);
+          listTaskLists().then(lists => {
+            setTaskLists(lists);
+            if (!selectedTaskList && lists.length > 0) {
+              setSelectedTaskList(lists[0]);
+            }
+          }).catch(() => {});
+        }
+      });
+    });
+  }, []);
+
+  const handleGoogleSignIn = useCallback(async () => {
+    try {
+      await signIn();
+      setGoogleConnected(true);
+      setShowSetupGuide(false);
+      const lists = await listTaskLists();
+      setTaskLists(lists);
+      if (lists.length > 0) {
+        if (!selectedTaskList) setSelectedTaskList(lists[0]);
+      }
+      setSyncMessage({ type: 'success', text: 'Connected to Google Tasks!' });
+      setTimeout(() => setSyncMessage(null), 3000);
+    } catch (e) {
+      setSyncMessage({ type: 'error', text: e.message });
+    }
+  }, [selectedTaskList]);
+
+  const handleGoogleSignOut = useCallback(async () => {
+    try {
+      await signOut();
+      setGoogleConnected(false);
+      setTaskLists([]);
+      setSelectedTaskList(null);
+      setSyncMessage({ type: 'success', text: 'Disconnected from Google Tasks.' });
+      setTimeout(() => setSyncMessage(null), 3000);
+    } catch (e) {
+      setSyncMessage({ type: 'error', text: e.message });
+    }
+  }, []);
+
+  const handleSync = useCallback(async () => {
+    if (!selectedTaskList || !googleConnected) return;
+    setSyncInProgress(true);
+    setSyncMessage(null);
+    try {
+      const result = await fullSync(selectedTaskList.id, todos, 'inbox', (msg) => {
+        setSyncMessage({ type: 'info', text: msg });
+      });
+      setTodos(result.todos);
+      setLastSyncTime(getLastSyncTime());
+      setSyncMessage({
+        type: 'success',
+        text: `Sync complete! ${result.imported} imported, ${result.updated} updated, ${result.synced} synced.`,
+      });
+      setTimeout(() => setSyncMessage(null), 5000);
+    } catch (e) {
+      setSyncMessage({ type: 'error', text: `Sync failed: ${e.message}` });
+    } finally {
+      setSyncInProgress(false);
+    }
+  }, [selectedTaskList, googleConnected, todos]);
 
   const handleClose = () => window.close();
 
@@ -166,6 +251,23 @@ function App() {
             <span className="material-symbols-outlined fill">{activeTab === 'editor' ? 'edit_document' : 'edit_square'}</span>
           </motion.button>
         </div>
+
+        <div className="mt-auto flex flex-col gap-4 w-full items-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={() => setShowSyncSettings(!showSyncSettings)}
+            className={`rounded-[14px] flex items-center justify-center w-12 h-12 transition-all duration-200 group relative border ${googleConnected ? 'text-green-400 border-green-400/30 bg-green-400/10' : 'text-on-surface-variant hover:bg-surface-variant/40 border-transparent hover:border-outline-variant/30'}`}
+            title={googleConnected ? 'Google Tasks Connected' : 'Connect Google Tasks'}
+          >
+            <span className="material-symbols-outlined fill text-[20px]">sync</span>
+            {syncInProgress && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-tertiary animate-ping"></span>
+            )}
+            {googleConnected && !syncInProgress && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-400"></span>
+            )}
+          </motion.button>
+        </div>
       </nav>
 
       {/* Main Content Area */}
@@ -189,10 +291,106 @@ function App() {
           </button>
         </header>
 
+        {syncMessage && (
+          <div className={`px-4 py-2 text-xs font-bold text-center border-b backdrop-blur-md ${syncMessage.type === 'error' ? 'bg-error/20 text-error border-error/30' : syncMessage.type === 'info' ? 'bg-tertiary/20 text-tertiary border-tertiary/30' : 'bg-green-400/20 text-green-400 border-green-400/30'}`}>
+            {syncMessage.text}
+          </div>
+        )}
+
+        {showSyncSettings && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-b border-surface-variant/30 bg-surface-container-low/80 backdrop-blur-md"
+          >
+            <div className="px-4 py-3 flex flex-col gap-3">
+              {!googleConnected && showSetupGuide ? (
+                <SetupGuide
+                  onClientIdSet={handleGoogleSignIn}
+                  onBack={() => setShowSyncSettings(false)}
+                />
+              ) : !googleConnected ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-on-surface flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
+                    </span>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={handleGoogleSignIn}
+                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">login</span> Sign in with Google
+                  </motion.button>
+                  <button
+                    onClick={() => setShowSetupGuide(true)}
+                    className="text-[10px] text-primary/70 hover:text-primary font-bold uppercase text-center"
+                  >
+                    Need to configure OAuth? Setup Guide →
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-on-surface flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
+                    </span>
+                    <span className="text-[10px] font-bold text-green-400 uppercase bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/30">Connected</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedTaskList?.id || ''}
+                      onChange={e => {
+                        const list = taskLists.find(l => l.id === e.target.value);
+                        setSelectedTaskList(list);
+                      }}
+                      className="flex-1 bg-surface-container border border-surface-variant/50 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/50"
+                    >
+                      {taskLists.map(list => (
+                        <option key={list.id} value={list.id}>{list.title}</option>
+                      ))}
+                    </select>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      onClick={handleSync}
+                      disabled={syncInProgress}
+                      className="bg-primary/20 text-primary rounded-xl px-3 py-2 flex items-center gap-1 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold disabled:opacity-40"
+                    >
+                      <span className={`material-symbols-outlined text-[16px] ${syncInProgress ? 'animate-spin' : ''}`}>sync</span>
+                      Sync
+                    </motion.button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {lastSyncTime && (
+                      <span className="text-[10px] text-outline font-bold">Last sync: {new Date(lastSyncTime).toLocaleString()}</span>
+                    )}
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowSetupGuide(true)}
+                        className="text-[10px] text-primary/70 hover:text-primary font-bold uppercase"
+                      >
+                        Settings
+                      </button>
+                      <button
+                        onClick={handleGoogleSignOut}
+                        className="text-[10px] text-error/70 hover:text-error font-bold uppercase"
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         <div className="flex-1 overflow-hidden relative">
           {isReady && (
             <AnimatePresence mode="wait">
-              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} /></motion.div>}
+              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} selectedTaskList={selectedTaskList} syncInProgress={syncInProgress} /></motion.div>}
               {activeTab === 'notes' && <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><NotesView stickyNotes={filteredSticky} longNotes={filteredLongNotes} setStickyNotes={setStickyNotes} setLongNotes={setLongNotes} onEditLongNote={handleEditLongNote} onEditStickyNote={handleEditStickyNote} /></motion.div>}
               {activeTab === 'editor' && <motion.div key="editor" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><RichEditorView note={editingNote} onSaveNote={saveLongNote} onCancel={() => { setEditingNote(null); setActiveTab('notes'); }} /></motion.div>}
               {activeTab === 'sticky-editor' && <motion.div key="sticky-editor" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="h-full"><StickyEditorView note={editingSticky} onSave={saveStickyNote} /></motion.div>}
@@ -304,19 +502,50 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
   );
 }
 
-function TodosView({ todos, setTodos, categoryColors, setCategoryColors }) {
+function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleConnected, selectedTaskList, syncInProgress }) {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('today');
   
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     if (e.key === 'Enter' && newTaskTitle.trim()) {
-      setTodos([...todos, { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory }]);
+      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory };
+      if (googleConnected && selectedTaskList) {
+        try {
+          const created = await insertTask(selectedTaskList.id, toGoogleTask(newTodo));
+          newTodo.googleTaskId = created.id;
+        } catch (err) {
+          console.warn('Failed to push new task to Google:', err);
+        }
+      }
+      setTodos([...todos, newTodo]);
       setNewTaskTitle('');
     }
   };
 
-  const updateTodo = (id, updates) => setTodos(todos.map(t => t.id === id ? { ...t, ...updates } : t));
-  const deleteTodo = (id) => setTodos(todos.filter(t => t.id !== id));
+  const updateTodo = async (id, updates) => {
+    const todo = todos.find(t => t.id === id);
+    const updated = { ...todo, ...updates };
+    setTodos(todos.map(t => t.id === id ? updated : t));
+    if (googleConnected && selectedTaskList && updated.googleTaskId) {
+      try {
+        await updateGoogleTask(selectedTaskList.id, updated.googleTaskId, toGoogleTask(updated));
+      } catch (err) {
+        console.warn('Failed to update task in Google:', err);
+      }
+    }
+  };
+
+  const deleteTodo = async (id) => {
+    const todo = todos.find(t => t.id === id);
+    setTodos(todos.filter(t => t.id !== id));
+    if (googleConnected && selectedTaskList && todo?.googleTaskId) {
+      try {
+        await deleteFromGoogle(selectedTaskList.id, todo.googleTaskId);
+      } catch (err) {
+        console.warn('Failed to delete task from Google:', err);
+      }
+    }
+  };
 
   const renderCategoryBlock = (catKey, label) => {
     const catTodos = todos.filter(t => t.category === catKey && !t.completed);
