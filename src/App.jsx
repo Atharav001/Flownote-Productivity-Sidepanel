@@ -50,13 +50,13 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   
   const [todos, setTodos, todosLoaded] = useChromeStorage('flownote_todos', [
-    { id: '1', title: 'Review Q3 design system updates', completed: false, priority: 'high', category: 'inbox' },
-    { id: '2', title: 'Sync with engineering on sidebar constraints', completed: false, priority: 'medium', category: 'inbox' },
+    { id: '1', title: 'Review Q3 design system updates', completed: false, priority: 'high', category: 'others' },
+    { id: '2', title: 'Sync with engineering on sidebar constraints', completed: false, priority: 'medium', category: 'others' },
     { id: '3', title: 'Draft component JSON structure', completed: true, priority: 'low', category: 'today' },
   ]);
 
   const [categoryColors, setCategoryColors, colorsLoaded] = useChromeStorage('flownote_categoryColors', {
-    inbox: '#A3A3A3', today: '#7C3AED', upcoming: '#3B82F6'
+    today: '#7C3AED', others: '#3B82F6'
   });
 
   const [stickyNotes, setStickyNotes, stickyLoaded] = useChromeStorage('flownote_stickyNotes', [
@@ -171,7 +171,7 @@ function App() {
     setSyncInProgress(true);
     setSyncMessage(null);
     try {
-      const result = await fullSync(selectedTaskList.id, todos, 'inbox', (msg) => {
+      const result = await fullSync(selectedTaskList.id, todos, 'others', (msg) => {
         setSyncMessage({ type: 'info', text: msg });
       });
       setTodos(result.todos);
@@ -605,9 +605,8 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
   return (
     <div className="flex flex-col h-full relative">
       <div className="flex-1 overflow-y-auto p-4 flex flex-col scrollbar-hide pb-24">
-        {renderCategoryBlock('inbox', 'Inbox')}
         {renderCategoryBlock('today', 'Today')}
-        {renderCategoryBlock('upcoming', 'Upcoming')}
+        {renderCategoryBlock('others', 'Others')}
 
         {todos.filter(t => t.completed).length > 0 && (
           <section className="flex flex-col gap-1.5 mt-6 p-4 border border-surface-variant rounded-2xl bg-surface-container-lowest/50 shadow-inner">
@@ -638,8 +637,7 @@ function TodosView({ todos, setTodos, categoryColors, setCategoryColors, googleC
               className="bg-transparent border-none text-label-caps text-outline focus:ring-0 cursor-pointer uppercase outline-none font-bold text-[10px]"
             >
               <option value="today">Today</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="inbox">Inbox</option>
+              <option value="others">Others</option>
             </select>
           </div>
         </div>
