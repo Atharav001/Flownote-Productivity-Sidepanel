@@ -56,37 +56,20 @@ export async function deleteTask(taskListId, taskId) {
 }
 
 export function toGoogleTask(todo) {
-  let due = todo.due;
-  if (todo.category === 'today') {
-    due = new Date().toISOString().split('T')[0] + 'T00:00:00.000Z';
-  } else if (todo.category === 'others' && todo.due) {
-    const todayStr = new Date().toISOString().split('T')[0];
-    if (todo.due.split('T')[0] === todayStr) {
-      due = null;
-    }
-  }
   return {
     title: todo.title,
     notes: todo.notes || `[Flownote] Priority: ${todo.priority}`,
     status: todo.completed ? 'completed' : 'needsAction',
-    due: due,
+    due: todo.due || null,
   };
 }
 
 export function fromGoogleTask(gt, defaultCategory) {
-  const todayStr = new Date().toISOString().split('T')[0];
-  let category = 'others';
-  if (gt.due) {
-    const dueStr = gt.due.split('T')[0];
-    if (dueStr === todayStr) {
-      category = 'today';
-    }
-  }
   return {
     title: gt.title || '',
     completed: gt.status === 'completed',
     priority: 'medium',
-    category: category,
+    category: 'others',
     googleTaskId: gt.id,
     notes: gt.notes || '',
     due: gt.due || null,

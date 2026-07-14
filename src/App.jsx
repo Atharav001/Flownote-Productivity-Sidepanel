@@ -353,95 +353,106 @@ function App() {
           </div>
         )}
 
-        {showSyncSettings && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-b border-surface-variant/30 bg-surface-container-low/80 backdrop-blur-md"
-          >
-            <div className="px-4 py-3 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
-                </span>
-                {googleConnected && (
-                  <span className="text-[10px] font-bold text-green-400 uppercase bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/30">Connected</span>
-                )}
-              </div>
 
-              {!googleConnected ? (
-                <div className="flex flex-col gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    onClick={handleGoogleSignIn}
-                    disabled={signingIn}
-                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center disabled:opacity-50 disabled:cursor-wait"
-                  >
-                    <span className={`material-symbols-outlined text-[18px] ${signingIn ? 'animate-spin' : ''}`}>
-                      {signingIn ? 'sync' : 'login'}
-                    </span>
-                    {signingIn ? 'Signing in...' : 'Sign in with Google'}
-                  </motion.button>
-                  <button
-                    onClick={handleClearTokensAndRetry}
-                    className="text-[10px] text-outline hover:text-on-surface font-bold uppercase text-center transition-colors"
-                  >
-                    Having issues? Clear cached tokens and retry
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedTaskList?.id || ''}
-                      onChange={e => {
-                        const list = taskLists.find(l => l.id === e.target.value);
-                        setSelectedTaskList(list);
-                      }}
-                      className="flex-1 bg-surface-container border border-surface-variant/50 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/50"
-                    >
-                      {taskLists.map(list => (
-                        <option key={list.id} value={list.id}>{list.title}</option>
-                      ))}
-                    </select>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                      onClick={handleSync}
-                      disabled={syncInProgress}
-                      className="bg-primary/20 text-primary rounded-xl px-3 py-2 flex items-center gap-1 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold disabled:opacity-40"
-                    >
-                      <span className={`material-symbols-outlined text-[16px] ${syncInProgress ? 'animate-spin' : ''}`}>sync</span>
-                      Sync
-                    </motion.button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    {lastSyncTime && (
-                      <span className="text-[10px] text-outline font-bold">Last sync: {new Date(lastSyncTime).toLocaleString()}</span>
-                    )}
-                    <button
-                      onClick={handleGoogleSignOut}
-                      className="text-[10px] text-error/70 hover:text-error font-bold uppercase"
-                    >
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
 
         <div className="flex-1 overflow-hidden relative">
           {isReady && (
             <AnimatePresence mode="wait">
-              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} /></motion.div>}
+              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} setSyncMessage={setSyncMessage} /></motion.div>}
               {activeTab === 'notes' && <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><NotesView stickyNotes={filteredSticky} longNotes={filteredLongNotes} setStickyNotes={setStickyNotes} setLongNotes={setLongNotes} onEditLongNote={handleEditLongNote} onEditStickyNote={handleEditStickyNote} /></motion.div>}
               {activeTab === 'editor' && <motion.div key="editor" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full"><RichEditorView note={editingNote} onSaveNote={saveLongNote} onCancel={() => { setEditingNote(null); setActiveTab('notes'); }} /></motion.div>}
               {activeTab === 'sticky-editor' && <motion.div key="sticky-editor" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="h-full"><StickyEditorView note={editingSticky} onSave={saveStickyNote} /></motion.div>}
             </AnimatePresence>
           )}
         </div>
+        <AnimatePresence>
+          {showSyncSettings && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowSyncSettings(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -30, x: "-50%" }}
+                animate={{ opacity: 1, scale: 1, y: -50, x: "-50%" }}
+                exit={{ opacity: 0, scale: 0.95, y: -30, x: "-50%" }}
+                style={{ top: "50%", left: "50%" }}
+                className="fixed w-[85%] max-w-[320px] bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl p-5 z-[101] flex flex-col gap-4"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">sync</span> Google Tasks Sync
+                  </span>
+                  <button onClick={() => setShowSyncSettings(false)} className="p-1 rounded-full hover:bg-white/10 text-outline hover:text-on-surface transition-colors flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+
+                {!googleConnected ? (
+                  <div className="flex flex-col gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      onClick={handleGoogleSignIn}
+                      disabled={signingIn}
+                      className="bg-primary/20 text-primary rounded-xl px-4 py-2.5 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center disabled:opacity-50 disabled:cursor-wait"
+                    >
+                      <span className={`material-symbols-outlined text-[18px] ${signingIn ? 'animate-spin' : ''}`}>
+                        {signingIn ? 'sync' : 'login'}
+                      </span>
+                      {signingIn ? 'Signing in...' : 'Sign in with Google'}
+                    </motion.button>
+                    <button
+                      onClick={handleClearTokensAndRetry}
+                      className="text-[10px] text-outline hover:text-on-surface font-bold uppercase text-center transition-colors mt-1"
+                    >
+                      Clear cached credentials
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={selectedTaskList?.id || ''}
+                        onChange={e => {
+                          const list = taskLists.find(l => l.id === e.target.value);
+                          setSelectedTaskList(list);
+                        }}
+                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/50"
+                      >
+                        {taskLists.map(list => (
+                          <option key={list.id} value={list.id} className="bg-[#1a1a1a]">{list.title}</option>
+                        ))}
+                      </select>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                        onClick={handleSync}
+                        disabled={syncInProgress}
+                        className="bg-primary/20 text-primary rounded-xl px-3 py-2 flex items-center gap-1 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold disabled:opacity-40"
+                      >
+                        <span className={`material-symbols-outlined text-[16px] ${syncInProgress ? 'animate-spin' : ''}`}>sync</span>
+                        Sync
+                      </motion.button>
+                    </div>
+                    <div className="flex items-center justify-between mt-1 text-[11px]">
+                      {lastSyncTime && (
+                        <span className="text-outline font-bold">Synced: {new Date(lastSyncTime).toLocaleTimeString()}</span>
+                      )}
+                      <button
+                        onClick={handleGoogleSignOut}
+                        className="text-error/70 hover:text-error font-bold uppercase transition-colors"
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
@@ -547,13 +558,13 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
   );
 }
 
-function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColors, googleConnected, activeLists, activeList, onSelectTaskList, syncInProgress }) {
+function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColors, googleConnected, activeLists, activeList, onSelectTaskList, syncInProgress, setSyncMessage }) {
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('today');
+  const [showCompleted, setShowCompleted] = useChromeStorage('flownote_showCompleted', true);
   
   const handleAdd = async (e) => {
     if (e.key === 'Enter' && newTaskTitle.trim()) {
-      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: selectedCategory, dirty: true, taskListId: activeList.id };
+      const newTodo = { id: generateId(), title: newTaskTitle.trim(), completed: false, priority: 'low', category: 'others', dirty: true, taskListId: activeList.id };
       if (googleConnected && activeList.id !== 'default') {
         try {
           const created = await insertTask(activeList.id, toGoogleTask(newTodo));
@@ -561,6 +572,8 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
           newTodo.dirty = false;
         } catch (err) {
           console.warn('Failed to push new task to Google:', err);
+          setSyncMessage({ type: 'info', text: 'Offline: task saved locally and will sync later.' });
+          setTimeout(() => setSyncMessage(null), 4000);
         }
       }
       setTodos([...allTodos, newTodo]);
@@ -579,6 +592,8 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
         setTodos(prevTodos => prevTodos.map(t => t.id === id ? { ...updated, dirty: false } : t));
       } catch (err) {
         console.warn('Failed to update task in Google:', err);
+        setSyncMessage({ type: 'info', text: 'Offline: saved locally, changes will sync when online.' });
+        setTimeout(() => setSyncMessage(null), 4000);
       }
     }
   };
@@ -594,44 +609,15 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
           await deleteFromGoogle(activeList.id, todo.googleTaskId);
         } catch (err) {
           console.warn('Failed to delete task from Google:', err);
+          setSyncMessage({ type: 'info', text: 'Offline: task deleted locally. Sync pending.' });
+          setTimeout(() => setSyncMessage(null), 4000);
         }
       }
     }
   };
 
-  const renderCategoryBlock = (catKey, label) => {
-    const catTodos = todos.filter(t => t.category === catKey && !t.completed);
-    const color = categoryColors[catKey];
-    
-    return (
-      <motion.section 
-        layout
-        className="flex flex-col gap-2 p-3.5 rounded-2xl border transition-colors mb-5 shadow-lg relative"
-        style={{ backgroundColor: `${color}1A`, borderColor: `${color}66` }}
-      >
-        {/* Decorative background glow */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ backgroundColor: color }}></div>
-        </div>
-        
-        <header className="flex items-center justify-between px-1 mb-2 relative z-20">
-          <div className="flex items-center gap-2">
-            <ColorPicker selectedColor={color} onChange={(c) => setCategoryColors({...categoryColors, [catKey]: c})} />
-            <h2 className="font-label-caps uppercase tracking-widest font-bold text-sm" style={{ color }}>{label}</h2>
-          </div>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${color}33`, color: color }}>{catTodos.length}</span>
-        </header>
-        <div className="flex flex-col gap-1.5 relative z-10">
-          <AnimatePresence>
-            {catTodos.map(t => <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />)}
-          </AnimatePresence>
-          {catTodos.length === 0 && (
-            <div className="py-4 text-center font-body-compact text-sm italic opacity-60" style={{ color }}>No tasks here yet!</div>
-          )}
-        </div>
-      </motion.section>
-    );
-  };
+  const activeTodos = todos.filter(t => !t.completed);
+  const completedTodos = todos.filter(t => t.completed);
 
   return (
     <div className="flex flex-col h-full relative">
@@ -656,20 +642,44 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col scrollbar-hide pb-24">
-        {renderCategoryBlock('today', 'Today')}
-        {renderCategoryBlock('others', 'Others')}
-
-        {todos.filter(t => t.completed).length > 0 && (
-          <section className="flex flex-col gap-1.5 mt-6 p-4 border border-surface-variant rounded-2xl bg-surface-container-lowest/50 shadow-inner">
-            <header className="flex items-center justify-between px-1 mb-3">
-              <h2 className="font-label-caps text-on-surface-variant/60 uppercase tracking-widest font-bold text-sm">Completed</h2>
-            </header>
-            <div className="flex flex-col gap-1.5 opacity-80">
-              <AnimatePresence>
-                {todos.filter(t => t.completed).map(t => <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />)}
-              </AnimatePresence>
+        {/* Active Tasks List */}
+        <div className="flex flex-col gap-2 relative z-10">
+          <AnimatePresence>
+            {activeTodos.map(t => (
+              <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />
+            ))}
+          </AnimatePresence>
+          {activeTodos.length === 0 && (
+            <div className="py-8 text-center font-body-compact text-sm italic opacity-60 text-outline">
+              No active tasks in this list!
             </div>
-          </section>
+          )}
+        </div>
+
+        {/* Toggle Completed Tasks */}
+        {completedTodos.length > 0 && (
+          <>
+            <div className="flex items-center justify-between mt-6 border-t border-surface-variant/20 pt-4 mb-2">
+              <span className="text-xs font-bold text-outline uppercase tracking-wider">Completed Tasks</span>
+              <button 
+                onClick={() => setShowCompleted(!showCompleted)}
+                className="text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[16px]">{showCompleted ? 'visibility_off' : 'visibility'}</span>
+                {showCompleted ? 'Hide' : `Show (${completedTodos.length})`}
+              </button>
+            </div>
+
+            {showCompleted && (
+              <div className="flex flex-col gap-2 opacity-70 mt-2">
+                <AnimatePresence>
+                  {completedTodos.map(t => (
+                    <TodoItem key={t.id} todo={t} updateTodo={updateTodo} deleteTodo={deleteTodo} />
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -682,15 +692,6 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
             placeholder={`Add a task and press Enter...`}
             className="w-full bg-transparent border-none text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none py-2.5 px-2 font-body-main"
           />
-          <div className="shrink-0 flex items-center bg-surface-container border border-surface-variant rounded-xl px-2 py-1 mr-1">
-            <select 
-              value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}
-              className="bg-transparent border-none text-label-caps text-outline focus:ring-0 cursor-pointer uppercase outline-none font-bold text-[10px]"
-            >
-              <option value="today">Today</option>
-              <option value="others">Others</option>
-            </select>
-          </div>
         </div>
       </div>
     </div>
