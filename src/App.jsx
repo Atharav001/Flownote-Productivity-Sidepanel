@@ -90,6 +90,16 @@ function App() {
   const [signingIn, setSigningIn] = useState(false);
   const signingInRef = useRef(false);
   const [syncMessage, setSyncMessage] = useState(null);
+  const [theme, setTheme] = useChromeStorage('flownote_theme', 'dark');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+    }
+  }, [theme]);
 
   useEffect(() => {
     const handleMessage = (request) => {
@@ -332,7 +342,18 @@ function App() {
           </motion.button>
         </div>
 
-        <div className="mt-auto flex flex-col gap-4 w-full items-center">
+        <div className="mt-auto flex flex-col gap-3 w-full items-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            className="rounded-[14px] flex items-center justify-center w-12 h-12 transition-all duration-200 group relative border text-on-surface-variant hover:bg-surface-variant/40 border-transparent hover:border-outline-variant/30"
+            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          >
+            <span className="material-symbols-outlined fill text-[20px]">
+              {theme === 'light' ? 'dark_mode' : 'light_mode'}
+            </span>
+          </motion.button>
+
           <motion.button
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             onClick={() => setShowSyncSettings(!showSyncSettings)}
