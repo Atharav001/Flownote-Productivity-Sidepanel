@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { signIn, signOut, isSignedIn } from './services/googleAuth.js';
+import { signIn, signOut, isSignedIn, clearAllCachedTokens } from './services/googleAuth.js';
 import { listTaskLists, insertTask, updateTask as updateGoogleTask, toGoogleTask } from './services/googleTasks.js';
 import { fullSync, deleteFromGoogle, getLastSyncTime } from './services/taskSync.js';
 
@@ -120,9 +120,29 @@ function App() {
       setSyncMessage({ type: 'success', text: 'Connected to Google Tasks!' });
       setTimeout(() => setSyncMessage(null), 3000);
     } catch (e) {
-      setSyncMessage({ type: 'error', text: e.message });
+      const msg = e.message;
+      if (msg.includes('OAuth2') || msg.includes('not granted') || msg.includes('revoked')) {
+        setSyncMessage({
+          type: 'error',
+          text: 'Sign in failed: OAuth configuration issue. Make sure your Google Cloud OAuth client has the correct Extension ID and the Tasks API is enabled.',
+        });
+      } else {
+        setSyncMessage({ type: 'error', text: msg });
+      }
     }
   }, [selectedTaskList]);
+
+  const handleClearTokensAndRetry = useCallback(async () => {
+    try {
+      await clearAllCachedTokens();
+      setGoogleConnected(false);
+      setTaskLists([]);
+      setSyncMessage({ type: 'info', text: 'Cached tokens cleared. Try signing in again.' });
+      setTimeout(() => setSyncMessage(null), 3000);
+    } catch (e) {
+      setSyncMessage({ type: 'error', text: `Failed to clear tokens: ${e.message}` });
+    }
+  }, []);
 
   const handleGoogleSignOut = useCallback(async () => {
     try {
@@ -309,13 +329,21 @@ function App() {
               </div>
 
               {!googleConnected ? (
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={handleGoogleSignIn}
-                  className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center"
-                >
-                  <span className="material-symbols-outlined text-[18px]">login</span> Sign in with Google
-                </motion.button>
+                <div className="flex flex-col gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={handleGoogleSignIn}
+                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-primary/30 border border-primary/30 transition-colors shadow-sm text-sm font-bold justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">login</span> Sign in with Google
+                  </motion.button>
+                  <button
+                    onClick={handleClearTokensAndRetry}
+                    className="text-[10px] text-outline hover:text-on-surface font-bold uppercase text-center transition-colors"
+                  >
+                    Having issues? Clear cached tokens and retry
+                  </button>
+                </div>
               ) : (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
