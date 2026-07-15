@@ -1,4 +1,4 @@
-const CLIENT_ID = '1046339328650-50liuojlu4agkscq3gvh188mbn8m2m17.apps.googleusercontent.com';
+const CLIENT_ID = '1046339328650-s5me5lvm6tenpfgre9tb2ph3quc3e3d7.apps.googleusercontent.com';
 const SCOPES = encodeURIComponent('https://www.googleapis.com/auth/tasks');
 
 function handleIdentityError() {
