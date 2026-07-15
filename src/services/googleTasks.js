@@ -29,6 +29,13 @@ export async function listTaskLists() {
   return data.items || [];
 }
 
+export async function insertTaskList(title) {
+  return api('/users/@me/lists', {
+    method: 'POST',
+    body: JSON.stringify({ title }),
+  });
+}
+
 export async function listTasks(taskListId, showCompleted = true) {
   const params = new URLSearchParams({ showCompleted: String(showCompleted), showHidden: 'true' });
   const data = await api(`/lists/${taskListId}/tasks?${params}`);

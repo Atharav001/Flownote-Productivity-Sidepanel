@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signIn, signOut, isSignedIn, clearAllCachedTokens } from './services/googleAuth.js';
-import { listTaskLists, insertTask, updateTask as updateGoogleTask, toGoogleTask } from './services/googleTasks.js';
+import { listTaskLists, insertTask, updateTask as updateGoogleTask, toGoogleTask, insertTaskList } from './services/googleTasks.js';
 import { fullSync, deleteFromGoogle, getLastSyncTime, queueDeletedTaskId } from './services/taskSync.js';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -189,6 +189,26 @@ function App() {
       setSyncMessage({ type: 'error', text: e.message });
     }
   }, []);
+
+  const handleCreateTaskList = useCallback(async (title) => {
+    const newListId = 'local_' + generateId();
+    const newTaskList = { id: newListId, title };
+    
+    if (googleConnected) {
+      try {
+        const created = await insertTaskList(title);
+        newTaskList.id = created.id;
+      } catch (err) {
+        console.warn('Failed to create task list on Google, saving locally:', err);
+        setSyncMessage({ type: 'info', text: 'Offline: list saved locally.' });
+        setTimeout(() => setSyncMessage(null), 3000);
+      }
+    }
+    
+    const updatedLists = [...taskLists, newTaskList];
+    setTaskLists(updatedLists);
+    setSelectedTaskList(newTaskList);
+  }, [googleConnected, taskLists, setSelectedTaskList]);
 
   const handleSync = useCallback(async () => {
     if (!googleConnected || activeLists.length === 0) return;
@@ -406,7 +426,7 @@ function App() {
         <div className="flex-1 overflow-hidden relative">
           {isReady && (
             <AnimatePresence mode="wait">
-              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.99 }} transition={{ type: "spring", stiffness: 650, damping: 35 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} setSyncMessage={setSyncMessage} /></motion.div>}
+              {activeTab === 'todos' && <motion.div key="todos" initial={{ opacity: 0, y: 10, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.99 }} transition={{ type: "spring", stiffness: 650, damping: 35 }} className="h-full"><TodosView todos={filteredTodos} allTodos={todos} setTodos={setTodos} categoryColors={categoryColors} setCategoryColors={setCategoryColors} googleConnected={googleConnected} activeLists={activeLists} activeList={activeList} onSelectTaskList={setSelectedTaskList} syncInProgress={syncInProgress} setSyncMessage={setSyncMessage} onCreateTaskList={handleCreateTaskList} /></motion.div>}
               {activeTab === 'notes' && <motion.div key="notes" initial={{ opacity: 0, y: 10, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.99 }} transition={{ type: "spring", stiffness: 650, damping: 35 }} className="h-full"><NotesView stickyNotes={filteredSticky} longNotes={filteredLongNotes} setStickyNotes={setStickyNotes} setLongNotes={setLongNotes} onEditLongNote={handleEditLongNote} onEditStickyNote={handleEditStickyNote} /></motion.div>}
               {activeTab === 'editor' && <motion.div key="editor" initial={{ opacity: 0, y: 10, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.99 }} transition={{ type: "spring", stiffness: 650, damping: 35 }} className="h-full"><RichEditorView note={editingNote} onSaveNote={saveLongNote} onCancel={() => { setEditingNote(null); setActiveTab('notes'); }} /></motion.div>}
               {activeTab === 'sticky-editor' && <motion.div key="sticky-editor" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="h-full"><StickyEditorView note={editingSticky} onSave={saveStickyNote} /></motion.div>}
@@ -628,7 +648,7 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
   );
 }
 
-function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColors, googleConnected, activeLists, activeList, onSelectTaskList, syncInProgress, setSyncMessage }) {
+function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColors, googleConnected, activeLists, activeList, onSelectTaskList, syncInProgress, setSyncMessage, onCreateTaskList }) {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [showCompleted, setShowCompleted] = useChromeStorage('flownote_showCompleted', true);
   
@@ -716,6 +736,21 @@ function TodosView({ todos, allTodos, setTodos, categoryColors, setCategoryColor
             </motion.button>
           );
         })}
+        
+        {/* Add List Button */}
+        <motion.button
+          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          onClick={() => {
+            const name = prompt("Enter new list name:");
+            if (name && name.trim()) {
+              onCreateTaskList(name.trim());
+            }
+          }}
+          className="relative rounded-full px-3 py-1.5 text-[11px] font-bold tracking-wide transition-all border shrink-0 flex items-center gap-1 bg-surface-container/60 hover:bg-surface-container border-surface-variant/40 text-on-surface-variant hover:text-on-surface"
+        >
+          <span className="material-symbols-outlined text-[12px] font-bold">add</span>
+          <span>New List</span>
+        </motion.button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col scrollbar-hide pb-24">
