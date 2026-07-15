@@ -71,13 +71,13 @@ function App() {
   const [editingSticky, setEditingSticky] = useState(null);
 
   const [googleConnected, setGoogleConnected] = useState(false);
-  const [taskLists, setTaskLists] = useState([]);
+  const [taskLists, setTaskLists, taskListsLoaded] = useChromeStorage('flownote_taskLists', []);
   const [selectedTaskList, setSelectedTaskList] = useChromeStorage('flownote_selectedTaskList', null);
   const [syncInProgress, setSyncInProgress] = useState(false);
 
   const activeLists = useMemo(() => {
-    return googleConnected && taskLists.length > 0 ? taskLists : [{ id: 'default', title: 'My Tasks' }];
-  }, [googleConnected, taskLists]);
+    return taskLists.length > 0 ? taskLists : [{ id: 'default', title: 'My Tasks' }];
+  }, [taskLists]);
 
   const activeList = useMemo(() => {
     if (!selectedTaskList) return activeLists[0];
@@ -183,8 +183,6 @@ function App() {
     try {
       await signOut();
       setGoogleConnected(false);
-      setTaskLists([]);
-      setSelectedTaskList(null);
       setSyncMessage({ type: 'success', text: 'Disconnected from Google Tasks.' });
       setTimeout(() => setSyncMessage(null), 3000);
     } catch (e) {
