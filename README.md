@@ -72,60 +72,34 @@ Flownote leverages the modern **Manifest V3** architecture and the `chrome.sideP
 
 ## 🚀 Setup & Installation
 
-Get Flownote running on your machine in 3 simple steps:
-
 ### 1. Build the Source
 ```bash
-# Install dependencies
-npm install
-
-# Compile the React app into the static /dist folder
-npm run build
+npm install      # Install dependencies
+npm run build    # Compile the React app into the /dist folder
 ```
 
 ### 2. Load the Extension
-Open a new tab and navigate to your browser's extension management page:
-- **Brave:** `brave://extensions/`
-- **Chrome:** `chrome://extensions/`
-- **Edge:** `edge://extensions/`
-
-Toggle the **Developer mode** switch ON. Click **Load unpacked** and select the `/dist` directory generated from step 1.
-
-### 3. Quick Access (Optional)
-Navigate to `brave://extensions/shortcuts` and bind a keyboard shortcut (e.g., `Cmd+Shift+X`) to instantly toggle your Flownote sidepanel!
+1. Open `chrome://extensions` or `brave://extensions`.
+2. Toggle **Developer mode** (top right) ON.
+3. Click **Load unpacked** and select the `/dist` directory.
+4. Copy your **Extension ID** for OAuth setup.
 
 ---
 
 ## 🔑 Google Tasks Sync & OAuth Setup
 
-Flownote features robust, bi-directional sync with your Google Tasks account. To configure Google Sign-In for your deployment:
+Flownote features bi-directional sync. Due to browser security differences, follow the setup for your browser:
 
 ### 1. Configure Google Cloud Console
-1. Visit the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a new project (or select an existing one).
-3. Navigate to **APIs & Services** > **Library** and enable the **Google Tasks API**.
-4. Go to the **OAuth consent screen** tab, choose **External** (or Internal for organization-restricted testing), fill out the required app details, and add the `https://www.googleapis.com/auth/tasks` scope.
-5. Navigate to **Credentials** > **Create Credentials** > **OAuth client ID**.
-6. Select **Chrome Extension** as the Application type.
-7. Enter your **Extension ID** (you can find this on your browser's extensions management page after loading the extension).
-8. Copy the generated **Client ID**.
+1. Go to [Google Cloud Console](https://console.cloud.google.com/).
+2. Enable the **Google Tasks API** in your project.
+3. Set up the **OAuth Consent Screen** with the `https://www.googleapis.com/auth/tasks` scope.
+4. Create your credentials:
+   * **For Google Chrome:** Create an OAuth Client ID of type **Chrome Extension**, enter your Extension ID, and paste the Client ID into `"oauth2"` in `public/manifest.json`.
+   * **For Brave / Other Browsers:** Create an OAuth Client ID of type **Web application**. Add `https://<YOUR_EXTENSION_ID>.chromiumapp.org/` to the **Authorized redirect URIs** list. Copy this Client ID and set it as `CLIENT_ID` in `src/services/googleAuth.js`.
 
-### 2. Update the Manifest File
-Open [public/manifest.json](file:///Users/atharavnarangmac/Desktop/Manipal%20CLG/Project/opencode/Flownote/public/manifest.json) and replace the `"oauth2"` block with your Client ID:
-```json
-  "oauth2": {
-    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/tasks"
-    ]
-  }
-```
-
-### 3. Ensure a Stable Extension ID during Development (Recommended)
-As noted in Chrome Extension best practices, the extension ID changes between development and production because it's derived from the directory path. To keep it stable so your OAuth configuration doesn't break:
-1. Pack the extension once (`chrome://extensions` -> **Pack extension**).
-2. Open the generated `.crx` file as a ZIP, or extract the public key.
-3. Add the `"key"` property containing your public key directly to your `public/manifest.json` file.
+### 2. Rebuild & Reload
+Remember to run `npm run build` and click **Reload** in your browser's extensions manager after editing credentials.
 
 ---
 
