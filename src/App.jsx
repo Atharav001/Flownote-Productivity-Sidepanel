@@ -72,7 +72,7 @@ function App() {
 
   const [googleConnected, setGoogleConnected] = useState(false);
   const [taskLists, setTaskLists, taskListsLoaded] = useChromeStorage('flownote_taskLists', []);
-  const [selectedTaskList, setSelectedTaskList] = useChromeStorage('flownote_selectedTaskList', null);
+  const [selectedTaskList, setSelectedTaskList, selectedTaskListLoaded] = useChromeStorage('flownote_selectedTaskList', null);
   const [syncInProgress, setSyncInProgress] = useState(false);
 
   const activeLists = useMemo(() => {
@@ -123,6 +123,7 @@ function App() {
   }, [googleConnected, selectedTaskList]);
 
   useEffect(() => {
+    if (!selectedTaskListLoaded) return;
     isSignedIn().then(connected => {
       if (connected) {
         setGoogleConnected(true);
@@ -134,7 +135,7 @@ function App() {
         }).catch(() => {});
       }
     });
-  }, []);
+  }, [selectedTaskListLoaded]);
 
   const handleGoogleSignIn = useCallback(async () => {
     if (signingInRef.current) return;
@@ -307,10 +308,10 @@ function App() {
   const isReady = todosLoaded && colorsLoaded && stickyLoaded && longLoaded;
 
   return (
-    <div className="bg-surface-container-lowest min-h-screen flex text-on-surface font-body-main relative overflow-hidden">
+    <div className="bg-transparent min-h-screen flex text-on-surface font-body-main relative overflow-hidden">
       
       {/* SideNavBar */}
-      <nav className="m-2 bg-surface-container-low text-primary shadow-lg flex flex-col h-[calc(100vh-16px)] w-[68px] py-4 px-2 border border-surface-variant/40 rounded-2xl items-center shrink-0 z-50">
+      <nav className="m-2 glass-panel text-primary shadow-2xl flex flex-col h-[calc(100vh-16px)] w-[68px] py-4 px-2 rounded-2xl items-center shrink-0 z-50">
         <div className="w-10 h-10 mb-8 flex items-center justify-center rounded-2xl overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.4)]">
           <img src="icon.png" alt="Flownote Logo" className="w-full h-full object-cover" />
         </div>
@@ -395,10 +396,10 @@ function App() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-background relative">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative">
         
         {/* Universal Top Header */}
-        <header className="h-[60px] shrink-0 border-b border-surface-variant/30 flex items-center px-4 justify-between bg-surface-container-lowest/90 backdrop-blur-md z-40">
+        <header className="h-[60px] shrink-0 border-b border-surface-variant/20 flex items-center px-4 justify-between bg-surface-container-lowest/60 backdrop-blur-lg z-40">
           <div className="relative group w-full max-w-sm">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
             <input 
@@ -582,7 +583,7 @@ function TodoItem({ todo, updateTodo, deleteTodo }) {
       exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
       whileHover={{ scale: 1.01, x: 2 }}
       transition={{ type: "spring", stiffness: 650, damping: 35 }}
-      className={`min-h-[48px] flex items-center gap-3 px-4 py-2.5 rounded-2xl group transition-all duration-150 border ${todo.completed ? 'opacity-50 bg-surface-container-lowest border-transparent grayscale-[30%]' : 'bg-surface-container-low border-surface-variant/40 hover:bg-surface-container-high hover:border-outline-variant/40 hover:shadow-lg hover:shadow-black/5'}`}
+      className={`min-h-[48px] flex items-center gap-3 px-4 py-2.5 rounded-2xl group transition-all duration-150 border backdrop-blur-md ${todo.completed ? 'opacity-50 bg-surface-container-lowest border-transparent grayscale-[30%]' : 'bg-surface-container-low border-white/5 hover:bg-surface-container-high hover:border-outline-variant/20 hover:shadow-lg hover:shadow-black/5'}`}
     >
       <div className="p-1 -m-1 cursor-pointer" onClick={toggleComplete}>
         <button 
@@ -860,8 +861,8 @@ function NotesView({ stickyNotes, longNotes, setStickyNotes, setLongNotes, onEdi
                   onClick={() => onEditStickyNote(note)}
                   whileHover={{ y: -6, scale: 1.03, rotate: 1.2, boxShadow: "0px 12px 30px rgba(0,0,0,0.4)" }}
                   transition={{ type: "spring", stiffness: 600, damping: 28 }}
-                  className="glass-card rounded-2xl p-4 relative group border transition-all cursor-pointer shadow-lg" 
-                  style={{ backgroundColor: `${note.color}1A`, borderColor: `${note.color}66` }}
+                  className="glass-card rounded-2xl p-4 relative group transition-all cursor-pointer shadow-lg" 
+                  style={{ backgroundColor: `${note.color}15`, borderColor: `${note.color}40` }}
                 >
                   <div className="flex justify-between items-start mb-3 relative z-10">
                     <span className="font-label-caps flex items-center gap-1.5 font-bold px-2 py-0.5 rounded-md bg-background/50 backdrop-blur-sm" style={{ color: note.color }}>
@@ -910,7 +911,7 @@ function NotesView({ stickyNotes, longNotes, setStickyNotes, setLongNotes, onEdi
                   onClick={() => onEditLongNote(note)}
                   whileHover={{ x: 6, scale: 1.01, boxShadow: "0px 8px 30px rgba(0,0,0,0.3)" }}
                   transition={{ type: "spring", stiffness: 650, damping: 30 }}
-                  className="bg-surface-container-high hover:bg-surface-container-highest cursor-pointer border border-surface-variant/50 rounded-2xl p-4 relative group shadow-md transition-all"
+                  className="glass-card hover:bg-surface-container-highest cursor-pointer rounded-2xl p-4 relative group shadow-md transition-all"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-sidebar-title font-bold text-xl drop-shadow-sm" style={{ color: note.color }}>{note.title}</h3>

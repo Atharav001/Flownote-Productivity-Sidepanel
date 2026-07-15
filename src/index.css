@@ -4,13 +4,13 @@
 
 :root {
   /* Premium Dark Theme */
-  --bg-background: #141415;
-  --bg-surface: #1e1e1f;
-  --bg-surface-container: #28282a;
-  --bg-surface-container-low: #222224;
-  --bg-surface-container-high: #333335;
-  --bg-surface-container-highest: #3e3e40;
-  --bg-surface-container-lowest: #0c0c0d;
+  --bg-background: transparent;
+  --bg-surface: rgba(30, 30, 31, 0.45);
+  --bg-surface-container: rgba(40, 40, 42, 0.5);
+  --bg-surface-container-low: rgba(30, 30, 32, 0.45);
+  --bg-surface-container-high: rgba(51, 51, 53, 0.65);
+  --bg-surface-container-highest: rgba(62, 62, 64, 0.75);
+  --bg-surface-container-lowest: rgba(12, 12, 13, 0.8);
   
   --text-on-surface: #f1f3f4;
   --text-on-surface-variant: #a8abb1;
@@ -25,17 +25,18 @@
   --tertiary: #ffb4a9;
   --error: #ff897d;
   --theme-color-scheme: dark;
+  --gradient-bg: linear-gradient(135deg, #0d0e12 0%, #15161f 100%);
 }
 
 :root.light {
-  /* Premium Light Theme - Google Tasks Aesthetic */
-  --bg-background: #f8f9fa;
-  --bg-surface: #ffffff;
-  --bg-surface-container: #f1f3f4;
-  --bg-surface-container-low: #f8f9fa;
-  --bg-surface-container-high: #e8eaed;
-  --bg-surface-container-highest: #dadce0;
-  --bg-surface-container-lowest: #ffffff;
+  /* Premium Light Theme */
+  --bg-background: transparent;
+  --bg-surface: rgba(255, 255, 255, 0.45);
+  --bg-surface-container: rgba(241, 243, 244, 0.5);
+  --bg-surface-container-low: rgba(255, 255, 255, 0.35);
+  --bg-surface-container-high: rgba(232, 234, 237, 0.6);
+  --bg-surface-container-highest: rgba(218, 220, 224, 0.75);
+  --bg-surface-container-lowest: rgba(255, 255, 255, 0.2);
   
   --text-on-surface: #202124;
   --text-on-surface-variant: #5f6368;
@@ -50,6 +51,7 @@
   --tertiary: #a50e0e;
   --error: #b3261e;
   --theme-color-scheme: light;
+  --gradient-bg: linear-gradient(135deg, #eef1f6 0%, #e2e5ee 100%);
 }
 
 @theme {
@@ -122,10 +124,11 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-background);
+  background: var(--gradient-bg);
   color: var(--text-on-surface);
   color-scheme: var(--theme-color-scheme);
   transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
 }
 
 .material-symbols-outlined {
@@ -176,6 +179,24 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid #2E2E2E;
+}
+.glass-panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+:root.light .glass-panel {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.glass-card {
+  background: var(--bg-surface-container-low);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+:root.light .glass-card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 .inner-highlight {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
