@@ -56,19 +56,35 @@ export async function deleteTask(taskListId, taskId) {
 }
 
 export function toGoogleTask(todo) {
+  let cleanTitle = todo.title.trim();
+  if (cleanTitle.startsWith('⭐ ')) {
+    cleanTitle = cleanTitle.substring(2);
+  } else if (cleanTitle.startsWith('⭐')) {
+    cleanTitle = cleanTitle.substring(1);
+  }
+  const title = todo.priority === 'high' ? `⭐ ${cleanTitle}` : cleanTitle;
   return {
-    title: todo.title,
-    notes: todo.notes || `[Flownote] Priority: ${todo.priority}`,
+    title: title,
+    notes: todo.notes || '',
     status: todo.completed ? 'completed' : 'needsAction',
     due: todo.due || null,
   };
 }
 
 export function fromGoogleTask(gt, defaultCategory) {
+  let title = gt.title || '';
+  let priority = 'low';
+  if (title.startsWith('⭐ ')) {
+    title = title.substring(2);
+    priority = 'high';
+  } else if (title.startsWith('⭐')) {
+    title = title.substring(1);
+    priority = 'high';
+  }
   return {
-    title: gt.title || '',
+    title: title,
     completed: gt.status === 'completed',
-    priority: 'medium',
+    priority: priority,
     category: 'others',
     googleTaskId: gt.id,
     notes: gt.notes || '',

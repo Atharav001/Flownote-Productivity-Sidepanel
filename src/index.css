@@ -125,7 +125,7 @@ body {
   background-color: var(--bg-background);
   color: var(--text-on-surface);
   color-scheme: var(--theme-color-scheme);
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .material-symbols-outlined {
@@ -183,7 +183,7 @@ body {
 .ghost-input {
   border: 1px solid #2E2E2E;
   background-color: transparent;
-  transition: all 150ms ease-out;
+  transition: all 100ms ease-out;
 }
 .ghost-input:focus {
   border-color: var(--color-secondary);
