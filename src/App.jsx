@@ -76,8 +76,14 @@ function App() {
   const [syncInProgress, setSyncInProgress] = useState(false);
 
   const activeLists = useMemo(() => {
-    return taskLists.length > 0 ? taskLists : [{ id: 'default', title: 'My Tasks' }];
-  }, [taskLists]);
+    if (googleConnected) {
+      return taskLists;
+    }
+    // If not connected, make sure default list is always included
+    const hasDefault = taskLists.some(l => l.id === 'default');
+    if (hasDefault) return taskLists;
+    return [{ id: 'default', title: 'My Tasks' }, ...taskLists];
+  }, [taskLists, googleConnected]);
 
   const activeList = useMemo(() => {
     if (!selectedTaskList) return activeLists[0];
@@ -128,7 +134,11 @@ function App() {
       if (connected) {
         setGoogleConnected(true);
         listTaskLists().then(lists => {
-          setTaskLists(lists);
+          setTaskLists(prev => {
+            const prevLists = Array.isArray(prev) ? prev : [];
+            const localUnsynced = prevLists.filter(l => l && l.id && typeof l.id === 'string' && l.id.startsWith('local_'));
+            return [...lists, ...localUnsynced];
+          });
           if (!selectedTaskList && lists.length > 0) {
             setSelectedTaskList(lists[0]);
           }
@@ -146,7 +156,11 @@ function App() {
       await signIn();
       setGoogleConnected(true);
       const lists = await listTaskLists();
-      setTaskLists(lists);
+      setTaskLists(prev => {
+        const prevLists = Array.isArray(prev) ? prev : [];
+        const localUnsynced = prevLists.filter(l => l && l.id && typeof l.id === 'string' && l.id.startsWith('local_'));
+        return [...lists, ...localUnsynced];
+      });
       if (lists.length > 0) {
         if (!selectedTaskList) setSelectedTaskList(lists[0]);
       }
@@ -191,26 +205,6 @@ function App() {
     }
   }, []);
 
-  const handleCreateTaskList = useCallback(async (title) => {
-    const newListId = 'local_' + generateId();
-    const newTaskList = { id: newListId, title };
-    
-    if (googleConnected) {
-      try {
-        const created = await insertTaskList(title);
-        newTaskList.id = created.id;
-      } catch (err) {
-        console.warn('Failed to create task list on Google, saving locally:', err);
-        setSyncMessage({ type: 'info', text: 'Offline: list saved locally.' });
-        setTimeout(() => setSyncMessage(null), 3000);
-      }
-    }
-    
-    const updatedLists = [...taskLists, newTaskList];
-    setTaskLists(updatedLists);
-    setSelectedTaskList(newTaskList);
-  }, [googleConnected, taskLists, setSelectedTaskList]);
-
   const handleSync = useCallback(async () => {
     if (!googleConnected || activeLists.length === 0) return;
     setSyncInProgress(true);
@@ -227,12 +221,39 @@ function App() {
       for (const list of activeLists) {
         if (list.id === 'default') continue;
         
-        const listTodos = mergedTodos.filter(t => t.taskListId === list.id);
-        const result = await fullSync(list.id, listTodos, 'others', (msg) => {
+        let currentListId = list.id;
+        let listTodos = mergedTodos.filter(t => t.taskListId === currentListId);
+        
+        if (currentListId.startsWith('local_')) {
+          try {
+            const created = await insertTaskList(list.title);
+            const newId = created.id;
+            
+            // Update local taskListId reference for these tasks
+            mergedTodos = mergedTodos.map(t => t.taskListId === currentListId ? { ...t, taskListId: newId } : t);
+            listTodos = listTodos.map(t => ({ ...t, taskListId: newId }));
+            
+            // Update the list ID in the taskLists array
+            setTaskLists(prev => prev.map(l => l.id === currentListId ? { ...l, id: newId } : l));
+            
+            // If this was the selected task list, update the selected task list reference
+            if (selectedTaskList && selectedTaskList.id === currentListId) {
+              setSelectedTaskList({ ...selectedTaskList, id: newId });
+            }
+            
+            currentListId = newId;
+          } catch (err) {
+            console.error('Failed to sync local task list:', err);
+            totalErrors++;
+            continue; // Skip this list's tasks sync
+          }
+        }
+        
+        const result = await fullSync(currentListId, listTodos, 'others', (msg) => {
           setSyncMessage({ type: 'info', text: `Syncing "${list.title}": ${msg}` });
         });
 
-        mergedTodos = mergedTodos.filter(t => t.taskListId !== list.id).concat(result.todos);
+        mergedTodos = mergedTodos.filter(t => t.taskListId !== currentListId).concat(result.todos);
         
         totalImported += result.imported;
         totalUpdated += result.updated;
@@ -252,7 +273,36 @@ function App() {
     } finally {
       setSyncInProgress(false);
     }
-  }, [activeLists, googleConnected, todos]);
+  }, [activeLists, googleConnected, todos, selectedTaskList]);
+
+  const handleCreateTaskList = useCallback(async (title) => {
+    const newListId = 'local_' + generateId();
+    const newTaskList = { id: newListId, title };
+    let success = false;
+    
+    if (googleConnected) {
+      try {
+        const created = await insertTaskList(title);
+        newTaskList.id = created.id;
+        success = true;
+      } catch (err) {
+        console.warn('Failed to create task list on Google, saving locally:', err);
+        setSyncMessage({ type: 'info', text: 'Offline: list saved locally.' });
+        setTimeout(() => setSyncMessage(null), 3000);
+      }
+    }
+    
+    const updatedLists = [...taskLists, newTaskList];
+    setTaskLists(updatedLists);
+    setSelectedTaskList(newTaskList);
+
+    if (success) {
+      setSyncMessage({ type: 'success', text: `List "${title}" created and synced to Google Tasks!` });
+      setTimeout(() => setSyncMessage(null), 3000);
+      // Trigger a sync to make sure state is fully in sync
+      handleSync();
+    }
+  }, [googleConnected, taskLists, setSelectedTaskList, handleSync]);
 
   const handleClose = () => window.close();
 

@@ -1,8 +1,8 @@
-import { getToken } from './googleAuth.js';
+import { getToken, clearAllCachedTokens } from './googleAuth.js';
 
 const BASE = 'https://tasks.googleapis.com/tasks/v1';
 
-async function api(path, options = {}) {
+async function api(path, options = {}, isRetry = false) {
   const token = await getToken();
   if (!token) throw new Error('Not authenticated');
 
@@ -16,6 +16,11 @@ async function api(path, options = {}) {
   });
 
   if (!res.ok) {
+    if (res.status === 401 && !isRetry) {
+      console.warn('Unauthorized (401) error, clearing cached token and retrying...');
+      await clearAllCachedTokens();
+      return api(path, options, true);
+    }
     const body = await res.text();
     throw new Error(`Google Tasks API error ${res.status}: ${body}`);
   }
@@ -69,9 +74,8 @@ export function toGoogleTask(todo) {
   } else if (cleanTitle.startsWith('⭐')) {
     cleanTitle = cleanTitle.substring(1);
   }
-  const title = todo.priority === 'high' ? `⭐ ${cleanTitle}` : cleanTitle;
   return {
-    title: title,
+    title: cleanTitle,
     notes: todo.notes || '',
     status: todo.completed ? 'completed' : 'needsAction',
     due: todo.due || null,
